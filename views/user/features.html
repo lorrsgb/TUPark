@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parking Availability - Features</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="/features.css" rel="stylesheet"/>
+</head>
+
+<body>
+  <header class="navbar">
+    <div class="logo"> 
+        <span>TUPark</span>
+        <img src="/image/TUPARK.png" alt="Logo" class="logo-img">
+    </div> 
+    <nav>
+      <ul>
+        <li><a href="/home">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/report-problem">Report</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="hero-bg"></div>
+  <div class="overlay"></div>
+
+  <main>
+    <section class="hero-section">
+      <h1>Find It Fast, Park It Easy!</h1>
+      <p>Experience stress-free parking with live slot tracking, guided navigation, and efficient management.</p>
+    </section>
+
+    <section>
+      <div class="grid two-col">
+        <div class="feature-card">
+          <h2>Real-Time Slot Monitoring</h2>
+          <p>Instantly view available and occupied parking slots through an interactive web interface.</p>
+        </div>
+        <div class="img-box">
+          <img src="/image/real time.jpg" alt="Interactive web interface">
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 style="text-align:center;margin-bottom:15px;">Parking Slot Map/Diagram</h2>
+      <p style="text-align:center;color:#ccc;max-width:900px;margin:auto;margin-bottom:30px;">
+        Visual representation of the parking area showing updated slot status for easy navigation.
+      </p>
+
+      <div class="diagram-container">
+        <div class="diagram-left">
+          <img src="/image/COURT.png" alt="Section A">
+          <img src="/image/IRTC.png" alt="Section B">
+          <img src="/image/CIT.png" alt="Section C">
+        </div>
+        <div class="diagram-right">
+          <img src="/image/2.png" alt="Main Diagram">
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 style="text-align:center;margin-bottom:15px;">Filter Options, Accurate Updates & User-Friendly Interface</h2>
+      <p style="text-align:center;color:#ccc;max-width:900px;margin:auto;margin-bottom:30px;">
+        Easily filter parking slots, get reliable real-time information, and enjoy a simple, accessible design for faster decision-making.
+      </p>
+
+      <div class="filter-wrapper">
+        <div class="filter-card">
+          <h3>Filter <button class="reset">Reset</button></h3>
+          <label>Park Location</label>
+          <select>
+            <option>Select</option>
+          </select>
+
+          <label style="margin-top:10px;">Type of Vehicle</label>
+          <select>
+            <option>Select</option>
+          </select>
+
+          <fieldset>
+            <legend>Show Only</legend>
+            <label><input type="checkbox">Available Spot</label><br>
+            <label><input type="checkbox">Unavailable Spot</label>
+          </fieldset>
+
+          <div class="status">
+            <p><b>Current Status</b></p>
+            <div class="stat-row"><span>Available Spot:</span><span class="badge green">88</span></div>
+          </div>
+        </div>
+
+        <div class="preview-card">
+          <img src="/image/FILTERED MAP.png" alt="UI Preview">
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

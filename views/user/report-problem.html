@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Report an Issue</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/user-report.css" />
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="logo"> 
+      <span>TUPark</span>
+      <img src="/image/TUPARK.png" alt="Logo" class="logo-img">
+    </div> 
+    <nav>
+      <ul>
+        <li><a href="/home">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/report-problem">Report</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="report-container">
+    <h1>Report an Issue Form</h1>
+    <p class="desc">Describe the problem you’re experiencing</p>
+
+    <form id="reportForm">
+      
+      <textarea id="description" name="problem-description" rows="6" placeholder="Write your issue here..." required></textarea>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="category">Category of Problem:</label>
+          <select id="category" name="category" required>
+            <option value="">Select a category</option>
+            <option>Slot is already occupied</option>
+            <option>Parking space problem</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="datetime">Date and Time of Occurrence:</label>
+          <input type="datetime-local" id="datetime" name="datetime" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Name:</label>
+          <input type="text" id="name" name="name" placeholder="Enter your name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="plate">Vehicle Plate Number:</label>
+          <input type="text" id="plate" name="admin-id" placeholder="Enter Vehicle Plate Number:" required />
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">SUBMIT</button>
+    </form>
+
+    <a href="/home" class="back-link">Go Back</a>
+  </main>
+
+  <script>
+    document.getElementById('reportForm').addEventListener('submit', async (e) => {
+      e.preventDefault(); // Stop page from reloading
+
+      // 1. Gather Data
+      const data = {
+        category: document.getElementById('category').value,
+        description: document.getElementById('description').value,
+        name: document.getElementById('name').value,
+        plate: document.getElementById('plate').value
+      };
+
+      try {
+        // 2. Send to Server
+        const response = await fetch('/api/submit-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        // 3. Handle Result
+        if (result.success) {
+          alert("Report Submitted Successfully!");
+          window.location.href = "/home"; // Redirect to home
+        } else {
+          alert("Error submitting report. Please try again.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("System Error. Check console.");
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Parking Availability</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<link rel="stylesheet" href="/demo.css" />
+</head>
+
+<body>
+ <header class="navbar">
+    <div class="logo"> 
+      <span>TUPark</span>
+      <img src="/image/TUPARK.png" alt="Logo" class="logo-img">
+    </div> 
+    <nav>
+      <ul>
+        <li><a href="/home">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/report-problem">Report</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+
+  <div class="main-content">
+    <div class="container">
+      <div class="filter-box">
+        <div class="filter-header">
+          <h2>Filter</h2>
+          <button id="reset-filter" class="reset-btn">Reset</button>
+        </div>
+
+        <div class="form-group">
+          <label for="park-location">Park Location</label>
+          <select id="park-location">
+            <option value="none">Select a location</option>
+            <option value="building1">COS & CLA</option>
+            <option value="building2">Library</option>
+            <option value="building3">Court</option>
+            <option value="building4">CIT</option>
+            <option value="building5">Maintainance</option>
+            <option value="building6">IRTC</option>
+            <option value="building7">Admin</option>
+          </select>
+        </div>
+
+        <!-- REMOVED VEHICLE TYPE FILTER -->
+
+        <div class="section-divider">
+          <h3>Show Only</h3>
+          <div class="checkbox-group">
+            <!-- Checked by default so map isn't empty on load -->
+            <input type="checkbox" id="available-spot" checked />
+            <label for="available-spot">Available Spot</label>
+          </div>
+          <div class="checkbox-group">
+            <!-- Checked by default so map isn't empty on load -->
+            <input type="checkbox" id="unavailable-spot" checked />
+            <label for="unavailable-spot">Unavailable Spot</label>
+          </div>
+        </div>
+
+        <div class="section-divider">
+          <h3>Current Status</h3>
+          <div class="status">
+            <div class="status-item"><span>COS & CLA:</span><span id="count-building1" class="value-green">0/27</span></div>
+            <div class="status-item"><span>Library</span><span id="count-building2" class="value-green">0/8</span></div>
+            <div class="status-item"><span>Court</span><span id="count-building3" class="value-green">0/13</span></div>
+            <div class="status-item"><span>CIT</span><span id="count-building4" class="value-green">0/16</span></div>
+            <div class="status-item"><span>Maintainance</span><span id="count-building5" class="value-green">0/10</span></div>
+            <div class="status-item"><span>IRTC</span><span id="count-building6" class="value-green">0/5</span></div>
+            <div class="status-item"><span>Admin</span><span id="count-building7" class="value-green">0/6</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="map-wrapper">
+      <div class="map-area">
+        <div class="map-container">
+          <img id="map-image" class="map-image" src="/image/2.png" alt="Parking map" />
+          <div id="spots-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+   <div id="spot-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" onclick="closeModal()">x</span>
+        <h3 id="modal-title">Spot Status</h3>
+        <div id="modal-body">
+            </div>
+    </div>
+  </div>
+
+<script>
+// ==========================================
+// 1. CONFIGURATION & SETUP
+// ==========================================
+const locationSelect = document.getElementById('park-location');
+const mapImage = document.getElementById('map-image');
+const resetButton = document.getElementById('reset-filter');
+const spotsContainer = document.getElementById('spots-container');
+const availableCheckbox = document.getElementById('available-spot');
+const unavailableCheckbox = document.getElementById('unavailable-spot');
+// Removed vehicleTypeSelect
+
+const modal = document.getElementById('spot-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalBody = document.getElementById('modal-body');
+
+const mapImages = {
+  none: '/image/2.png',
+  building1: '/image/COS & CLA.png',
+  building2: '/image/LIBRARY.png',
+  building3: '/image/COURT.png',
+  building4: '/image/CIT.png',
+  building5: '/image/MAINTAINANCE.png',
+  building6: '/image/IRTC.png',
+  building7: '/image/ADMIN.png'
+};
+
+const buildingSpotSizes = {
+  building1: { width: 15, height: 35 },
+  building2: { width: 30, height: 60 },
+  building3: { width: 35, height: 75 },
+  building4: { width: 29, height: 56 },
+  building5: { width: 44, height: 87 },
+  building6: { width: 44, height: 89 },
+  building7: { width: 42, height: 83 }
+};
+
+// ==========================================
+// 2. COORDINATES
+// ==========================================
+const parkingSpots = {
+  none: [],
+  building1: [
+    { spot_id: 'CLA1', top: '50%', left: '59px' },
+    { spot_id: 'CLA2', top: '50%', left: '79px' },
+    { spot_id: 'CLA3', top: '50%', left: '98px' },
+    { spot_id: 'CLA4', top: '50%', left: '117px' },
+    { spot_id: 'CLA5', top: '50%', left: '137px' },
+    { spot_id: 'CLA6', top: '50%', left: '156px' },
+    { spot_id: 'CLA7', top: '50%', left: '175px' },
+    { spot_id: 'CLA8', top: '50%', left: '195px' },
+    { spot_id: 'CLA9', top: '50%', left: '214px' },
+    { spot_id: 'CLA10', top: '50%', left: '234px' },
+    { spot_id: 'CLA11', top: '50%', left: '252px' },
+    { spot_id: 'CLA12', top: '50%', left: '272px' },
+    { spot_id: 'CLA13', top: '50%', left: '292px' },
+    { spot_id: 'CLA14', top: '50%', left: '311px' },
+    { spot_id: 'CLA15', top: '50%', left: '330px' },
+    { spot_id: 'CLA16', top: '50%', left: '349px' },
+    { spot_id: 'CLA17', top: '50%', left: '369px' },
+    { spot_id: 'CLA18', top: '50%', left: '388px' },
+    { spot_id: 'CLA19', top: '50%', left: '407px' },
+    { spot_id: 'CLA20', top: '50%', left: '427px' },
+    { spot_id: 'CLA21', top: '50%', left: '447px' },
+    { spot_id: 'COS1', top: '50%', left: '549px' },
+    { spot_id: 'COS2', top: '50%', left: '568px' },
+    { spot_id: 'COS3', top: '50%', left: '588px' },
+    { spot_id: 'COS4', top: '50%', left: '609px' },
+    { spot_id: 'COS5', top: '50%', left: '628px' },
+    { spot_id: 'COS6', top: '50%', left: '649px' },
+  ],
+  building2: [
+    { spot_id: 'LIB1', top: '50%', left: '183px' },
+    { spot_id: 'LIB2', top: '50%', left: '220px' },
+    { spot_id: 'LIB3', top: '50%', left: '257px' },
+    { spot_id: 'LIB4', top: '50%', left: '294px' },
+    { spot_id: 'LIB5', top: '50%', left: '330px' },
+    { spot_id: 'LIB6', top: '50%', left: '367px' },
+    { spot_id: 'LIB7', top: '50%', left: '487px' },
+    { spot_id: 'LIB8', top: '50%', left: '524px' }
+  ],
+  building3: [
+    { spot_id: 'CRT1', top: '49%', left: '46px' },
+    { spot_id: 'CRT2', top: '49%', left: '91px' },
+    { spot_id: 'CRT3', top: '49%', left: '137px' },
+    { spot_id: 'CRT4', top: '49%', left: '183px' },
+    { spot_id: 'CRT5', top: '49%', left: '228px' },
+    { spot_id: 'CRT6', top: '49%', left: '276px' },
+    { spot_id: 'CRT7', top: '49%', left: '322px' },
+    { spot_id: 'CRT8', top: '49%', left: '440px' },
+    { spot_id: 'CRT9', top: '49%', left: '485px' },
+    { spot_id: 'CRT10', top: '49%', left: '531px' },
+    { spot_id: 'CRT11', top: '49%', left: '576px' },
+    { spot_id: 'CRT12', top: '49%', left: '621px' },
+    { spot_id: 'CRT13', top: '49%', left: '667px' }
+  ],
+  building4: [
+    { spot_id: 'CIT1', top: '50%', left: '44px' },
+    { spot_id: 'CIT2', top: '50%', left: '78px' },
+    { spot_id: 'CIT3', top: '50%', left: '112px' },
+    { spot_id: 'CIT4', top: '50%', left: '147px' },
+    { spot_id: 'CIT5', top: '50%', left: '181px' },
+    { spot_id: 'CIT6', top: '50%', left: '217px' },
+    { spot_id: 'CIT7', top: '50%', left: '353px' },
+    { spot_id: 'CIT8', top: '50%', left: '387px' },
+    { spot_id: 'CIT9', top: '50%', left: '421px' },
+    { spot_id: 'CIT0', top: '50%', left: '455px' },
+    { spot_id: 'CIT11', top: '50%', left: '490px' },
+    { spot_id: 'CIT12', top: '50%', left: '525px' },
+    { spot_id: 'CIT13', top: '50%', left: '560px' },
+    { spot_id: 'CIT14', top: '50%', left: '595px' },
+    { spot_id: 'CIT15', top: '50%', left: '630px' },
+    { spot_id: 'CIT16', top: '50%', left: '665px' }
+  ],
+  building5: [
+    { spot_id: 'MNT1', top: '52%', left: '295px' },
+    { spot_id: 'MNT2', top: '52%', left: '349px' },
+    { spot_id: 'MNT3', top: '52%', left: '403px' },
+    { spot_id: 'MNT4', top: '52%', left: '459px' },
+    { spot_id: 'MNT5', top: '52%', left: '513px' },
+    { spot_id: 'MNT6', top: '75.9%', left: '295px' },
+    { spot_id: 'MNT7', top: '75.9%', left: '349px' },
+    { spot_id: 'MNT8', top: '75.9%', left: '404px' },
+    { spot_id: 'MNT9', top: '75.9%', left: '460px' },
+    { spot_id: 'MNT10', top: '75.9%', left: '514px' }
+  ],
+  building6: [
+    { spot_id: 'IRTC1', top: '49.8%', left: '213px' },
+    { spot_id: 'IRTC2', top: '49.8%', left: '266px' },
+    { spot_id: 'IRTC3', top: '49.8%', left: '319px' },
+    { spot_id: 'IRTC4', top: '49.8%', left: '374px' },
+    { spot_id: 'IRTC5', top: '49.8%', left: '427px' }
+  ],
+  building7: [
+    { spot_id: 'ADM1', top: '49%', left: '50px' },
+    { spot_id: 'ADM2', top: '49%', left: '101px' },
+    { spot_id: 'ADM3', top: '49%', left: '151px' },
+    { spot_id: 'ADM4', top: '49%', left: '201px' },
+    { spot_id: 'ADM5', top: '49%', left: '251px' },
+    { spot_id: 'ADM6', top: '49%', left: '301px' },
+  ]
+};
+
+// ==========================================
+// 3. REAL-TIME LOGIC (STRICT FILTER)
+// ==========================================
+
+let currentSpotsData = []; 
+let lastLocation = null;
+
+// A. Fetch Data
+async function fetchRealTimeData() {
+    try {
+        const response = await fetch('/api/spots'); 
+        if (!response.ok) throw new Error("Network error");
+        currentSpotsData = await response.json(); 
+        
+        updateMapView(locationSelect.value);
+        updateDashboardCounts(); 
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+}
+
+// B. Update Sidebar Numbers
+function updateDashboardCounts() {
+  const buildingMap = {
+    building1: 'count-building1', building2: 'count-building2',
+    building3: 'count-building3', building4: 'count-building4',
+    building5: 'count-building5', building6: 'count-building6',
+    building7: 'count-building7'
+  };
+
+  for (const [key, elementId] of Object.entries(buildingMap)) {
+    const spotsInBuilding = parkingSpots[key];
+    if (!spotsInBuilding) continue;
+    const total = spotsInBuilding.length;
+    let occupiedCount = 0;
+
+    spotsInBuilding.forEach(spot => {
+      const dbRecord = currentSpotsData.find(d => d.slot_number === spot.spot_id);
+      if (dbRecord && (dbRecord.status === 'occupied' || dbRecord.status === 'unavailable')) {
+         occupiedCount++;
+      }
+    });
+
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.innerText = `${occupiedCount}/${total}`;
+        element.className = occupiedCount > 0 ? 'value-red' : 'value-green';
+    }
+  }
+}
+
+// C. Render Map (Smart Update)
+function updateMapView(location) {
+  const isNewLocation = (location !== lastLocation);
+  lastLocation = location;
+  
+  if (isNewLocation) {
+      mapImage.classList.remove('fade-in');
+      spotsContainer.innerHTML = ''; // Clear old spots
+      
+      const newImage = mapImages[location] || mapImages.none;
+      
+      setTimeout(() => {
+          mapImage.src = newImage;
+          mapImage.onload = () => {
+              mapImage.classList.add('fade-in');
+              renderSpots(location); // Draw spots
+          };
+      }, 200);
+  } else {
+      renderSpots(location);
+  }
+}
+
+// Helper: Draw or Update Spots
+function renderSpots(location) {
+   const buildingCoords = parkingSpots[location];
+   if (!buildingCoords) return;
+
+   const showAvailable = availableCheckbox.checked;
+   const showUnavailable = unavailableCheckbox.checked;
+
+   buildingCoords.forEach(coord => {
+      // Get Real Status
+      const dbSpot = currentSpotsData.find(s => s.slot_number === coord.spot_id);
+      const realStatus = dbSpot ? dbSpot.status : 'available';
+      const vehicleType = dbSpot ? dbSpot.vehicle_type : null;
+
+      // --- STRICT FILTER LOGIC ---
+      // By default, visibility is FALSE
+      let isVisible = false;
+
+      // 1. If it's available, ONLY show if available checkbox is checked
+      if (realStatus === 'available' && showAvailable) {
+          isVisible = true;
+      }
+      
+      // 2. If it's occupied/unavailable, ONLY show if unavailable checkbox is checked
+      if ((realStatus === 'occupied' || realStatus === 'unavailable') && showUnavailable) {
+          isVisible = true;
+      }
+
+      // --- DIFFING LOGIC (Prevent Blinking) ---
+      let box = document.getElementById(`spot-${coord.spot_id}`);
+
+      if (!box) {
+          // CREATE IT
+          box = document.createElement('div');
+          box.id = `spot-${coord.spot_id}`; 
+          box.style.top = coord.top;
+          box.style.left = coord.left;
+          
+          const size = buildingSpotSizes[location];
+          if (size) {
+            box.style.width = `${size.width}px`;
+            box.style.height = `${size.height}px`;
+          }
+
+          box.addEventListener('click', () => {
+             const latest = currentSpotsData.find(s => s.slot_number === coord.spot_id);
+             showSpotDetails(coord.spot_id, latest ? latest.status : 'available', latest ? latest.vehicle_type : null);
+          });
+          
+          spotsContainer.appendChild(box);
+          setTimeout(() => box.classList.add('show'), 10);
+      }
+
+      // UPDATE IT
+      const statusClass = (realStatus === 'occupied' || realStatus === 'unavailable') ? 'unavailable' : 'available';
+      
+      box.className = `spot ${statusClass} show`; 
+      box.style.display = isVisible ? 'block' : 'none'; // Strictly show/hide
+   });
+}
+
+// ==========================================
+// 4. READ-ONLY POPUP
+// ==========================================
+function closeModal() {
+  modal.classList.remove('show-modal');
+}
+
+function showSpotDetails(spotId, status, type) {
+  modalTitle.textContent = `Spot: ${spotId}`;
+  
+  if (status === 'occupied' || status === 'unavailable') {
+      modalBody.innerHTML = `
+          <p style="color: #ff4444; font-weight: bold; font-size: 1.2em;">STATUS: OCCUPIED</p>
+          <p>Vehicle Type: <strong>${type || 'Unknown'}</strong></p>
+          <hr style="border: 0; border-top: 1px solid #555; margin: 15px 0;">
+          <p style="font-size: 0.9em; color: #ccc;">Please look for another spot.</p>
+      `;
+  } else {
+      modalBody.innerHTML = `
+          <p style="color: #22c55e; font-weight: bold; font-size: 1.2em;">STATUS: AVAILABLE</p>
+          <hr style="border: 0; border-top: 1px solid #555; margin: 15px 0;">
+          <p style="font-size: 0.9em; color: #ccc;">You can park here!</p>
+      `;
+  }
+  modal.classList.add('show-modal');
+}
+
+window.onclick = function(event) {
+  if (event.target === modal) closeModal();
+}
+
+// ==========================================
+// 5. EVENTS & INIT
+// ==========================================
+locationSelect.addEventListener('change', () => updateMapView(locationSelect.value));
+availableCheckbox.addEventListener('change', () => updateMapView(locationSelect.value));
+unavailableCheckbox.addEventListener('change', () => updateMapView(locationSelect.value));
+
+resetButton.addEventListener('click', () => {
+  locationSelect.value = 'none';
+  availableCheckbox.checked = true; // Reset to ALL VISIBLE
+  unavailableCheckbox.checked = true; // Reset to ALL VISIBLE
+  updateMapView('none');
+});
+
+// START
+fetchRealTimeData();
+document.body.classList.add("fade-in");
+setInterval(fetchRealTimeData, 2000); 
+
+</script>
+</body>
+</html>

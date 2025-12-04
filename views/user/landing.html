@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parking Availability</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/landing.css" />
+</head>
+
+<body class="home-page">
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="logo">
+      <span>TUPark</span>
+      <img src="/image/TUPARK.png" alt="Logo" class="logo-img">
+    </div> 
+    <nav>
+      <ul>
+        <li><a href="/home">Home</a></li>           <li><a href="/about">About</a></li>         <li><a href="/features">Features</a></li>   <li><a href="/contact">Contact</a></li>     <li><a href="/report-problem">Report</a></li> </ul>
+    </nav>
+  </header>
+
+  <!-- Front Content -->
+  <div class="overlay"></div>
+  <div class="Front-content">
+    <h1>TUP<span>ark</span></h1>
+    <p>Find It Fast, Park It Easy!</p>
+    <button class="demo-btn" id="demo-btn">View Demo</button>
+  </div>
+
+  <!-- TOP VIEW CAR IMAGE -->
+  <img src="/image/car-top.png" alt="Car" class="car" id="car">
+
+  <!-- POLICY POPUP -->
+  <div id="policyModal" class="policy-modal">
+    <div class="policy-content">
+      <h2>TUPark Guidelines & Policies</h2>
+      <p class="intro">Please read and agree to the following before using TUPark:</p>
+      <ul>
+        <li>Use the parking map responsibly and avoid false reporting.</li>
+        <li>Only submit accurate parking availability information.</li>
+        <li>Respect all campus traffic and parking rules.</li>
+        <li>Your data will be used for improving TUPark.</li>
+        <li>Unauthorized misuse of this system is prohibited.</li>
+         <p class="violation">VIOLATION FEE: 500 pesos</p>
+      </ul>
+      <a href="/home" class="agree-btn">I Agree</a>
+
+    </div>
+  </div>
+  <!-- END POPUP -->
+
+  <script src="/user-script.js"></script>
+
+</body>
+</html>

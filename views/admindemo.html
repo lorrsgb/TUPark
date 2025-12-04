@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Parking Availability</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+<link rel="stylesheet" href="adminstyle.css" />
+</head>
+<body>
+ 
+  <header class="navbar">
+    <div class="logo"> 
+      <span>TUPark</span>
+      <img src="/TUPARK.png" alt="Logo" class="logo-img">
+    </div> 
+    <nav>
+      <ul>
+        <li><a href="/admin">Home</a></li>
+        <li><a href="/admin/reports">User Reports</a></li>
+        <li><a href="#" onclick="openLogsModal()">Admin Logs</a></li>
+        <li><a href="/logout" style="color: #ff4444;">Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+
+  <div class="main-content">
+    <div class="container">
+      <div class="filter-box">
+        <div class="filter-header">
+          <h2>Filter</h2>
+          <button id="reset-filter" class="reset-btn">Reset</button>
+        </div>
+
+        <div class="form-group">
+          <label for="park-location">Park Location</label>
+          <select id="park-location">
+            <option value="none">Select a location</option>
+            <option value="building1">COS & CLA</option>
+            <option value="building2">Library</option>
+            <option value="building3">Court</option>
+            <option value="building4">CIT</option>
+            <option value="building5">Maintainance</option>
+            <option value="building6">IRTC</option>
+            <option value="building7">Admin</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="vehicle-type">Type of Vehicle</label>
+          <select id="vehicle-type">
+            <option value="all">All</option> <!-- This is Required -->
+            <option value="Car">Car</option>
+            <option value="Motorcycle">Motorcycle</option>
+            <option value="Van">Van</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+
+        <div class="section-divider">
+          <h3>Show Only</h3>
+          <div class="checkbox-group">
+            <input type="checkbox" id="available-spot" />
+            <label for="available-spot">Available Spot</label>
+          </div>
+          <div class="checkbox-group">
+            <input type="checkbox" id="unavailable-spot" />
+            <label for="unavailable-spot">Unavailable Spot</label>
+          </div>
+        </div>
+
+        <div class="section-divider">
+          <h3>Current Status</h3>
+          <div class="status">
+            <div class="status-item">
+              <span>COS & CLA:</span>
+              <span id="count-building1" class="value-green">0/27</span>
+            </div>
+            <div class="status-item">
+              <span>Library</span>
+              <span id="count-building2" class="value-green">0/8</span>
+            </div>
+            <div class="status-item">
+              <span>Court</span>
+              <span id="count-building3" class="value-green">0/13</span>
+            </div>
+            <div class="status-item">
+              <span>CIT</span>
+              <span id="count-building4" class="value-green">0/16</span>
+            </div>
+            <div class="status-item">
+              <span>Maintainance</span>
+              <span id="count-building5" class="value-green">0/10</span>
+            </div>
+            <div class="status-item">
+              <span>IRTC:</span>
+              <span id="count-building6" class="value-green">0/5</span>
+            </div>
+            <div class="status-item">
+              <span>Admin</span>
+              <span id="count-building7" class="value-green">0/6</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="map-wrapper">
+      <div class="map-area">
+        <div class="map-container">
+          <img id="map-image" class="map-image" src="2.png" alt="Parking map" />
+          <div id="spots-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div id="spot-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" onclick="closeModal()">&times;</span>
+        <h3 id="modal-title">Spot Status</h3>
+        <div id="modal-body">
+            </div>
+    </div>
+  </div>
+
+  <div id="logs-modal" class="modal">
+  <div class="modal-content" style="max-width: 700px; height: 80vh; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3>System Activity Logs</h3>
+        <span class="close-button" onclick="closeLogsModal()">&times;</span>
+      </div>
+      <div id="logs-list" style="flex: 1; overflow-y: auto; border-top: 1px solid #555; padding-top: 10px;">
+          <p>Loading...</p>
+      </div>
+  </div>
+</div>
+
+  <script>
+// ==========================================
+// 1. CONFIGURATION
+// ==========================================
+const locationSelect = document.getElementById('park-location');
+const mapImage = document.getElementById('map-image');
+const resetButton = document.getElementById('reset-filter');
+const spotsContainer = document.getElementById('spots-container');
+const availableCheckbox = document.getElementById('available-spot');
+const unavailableCheckbox = document.getElementById('unavailable-spot');
+const vehicleTypeSelect = document.getElementById('vehicle-type'); 
+const modal = document.getElementById('spot-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalBody = document.getElementById('modal-body');
+
+const mapImages = {
+  none: '2.png',
+  building1: 'COS & CLA.png',
+  building2: 'LIBRARY.png',
+  building3: 'COURT.png',
+  building4: 'CIT.png',
+  building5: 'MAINTAINANCE.png',
+  building6: 'IRTC.png',
+  building7: 'ADMIN.png'
+};
+
+const buildingSpotSizes = {
+  building1: { width: 15, height: 35 },
+  building2: { width: 30, height: 60 },
+  building3: { width: 35, height: 75 },
+  building4: { width: 29, height: 56 },
+  building5: { width: 44, height: 87 },
+  building6: { width: 44, height: 89 },
+  building7: { width: 42, height: 83 }
+};
+
+// ==========================================
+// 2. COORDINATES (Paste your full list!)
+// ==========================================
+const parkingSpots = {
+  none: [],
+  building1: [
+    { spot_id: 'CLA1', top: '50%', left: '59px' },
+    { spot_id: 'CLA2', top: '50%', left: '79px' },
+    { spot_id: 'CLA3', top: '50%', left: '98px' },
+    { spot_id: 'CLA4', top: '50%', left: '117px' },
+    { spot_id: 'CLA5', top: '50%', left: '137px' },
+    { spot_id: 'CLA6', top: '50%', left: '156px' },
+    { spot_id: 'CLA7', top: '50%', left: '175px' },
+    { spot_id: 'CLA8', top: '50%', left: '195px' },
+    { spot_id: 'CLA9', top: '50%', left: '214px' },
+    { spot_id: 'CLA10', top: '50%', left: '234px' },
+    { spot_id: 'CLA11', top: '50%', left: '252px' },
+    { spot_id: 'CLA12', top: '50%', left: '272px' },
+    { spot_id: 'CLA13', top: '50%', left: '292px' },
+    { spot_id: 'CLA14', top: '50%', left: '311px' },
+    { spot_id: 'CLA15', top: '50%', left: '330px' },
+    { spot_id: 'CLA16', top: '50%', left: '349px' },
+    { spot_id: 'CLA17', top: '50%', left: '369px' },
+    { spot_id: 'CLA18', top: '50%', left: '388px' },
+    { spot_id: 'CLA19', top: '50%', left: '407px' },
+    { spot_id: 'CLA20', top: '50%', left: '427px' },
+    { spot_id: 'CLA21', top: '50%', left: '447px' },
+    { spot_id: 'COS1', top: '50%', left: '549px' },
+    { spot_id: 'COS2', top: '50%', left: '568px' },
+    { spot_id: 'COS3', top: '50%', left: '588px' },
+    { spot_id: 'COS4', top: '50%', left: '609px' },
+    { spot_id: 'COS5', top: '50%', left: '628px' },
+    { spot_id: 'COS6', top: '50%', left: '649px' },
+  ],
+  building2: [
+    { spot_id: 'LIB1', top: '50%', left: '183px' },
+    { spot_id: 'LIB2', top: '50%', left: '220px' },
+    { spot_id: 'LIB3', top: '50%', left: '257px' },
+    { spot_id: 'LIB4', top: '50%', left: '294px' },
+    { spot_id: 'LIB5', top: '50%', left: '330px' },
+    { spot_id: 'LIB6', top: '50%', left: '367px' },
+    { spot_id: 'LIB7', top: '50%', left: '487px' },
+    { spot_id: 'LIB8', top: '50%', left: '524px' }
+  ],
+  building3: [
+    { spot_id: 'CRT1', top: '49%', left: '46px' },
+    { spot_id: 'CRT2', top: '49%', left: '91px' },
+    { spot_id: 'CRT3', top: '49%', left: '137px' },
+    { spot_id: 'CRT4', top: '49%', left: '183px' },
+    { spot_id: 'CRT5', top: '49%', left: '228px' },
+    { spot_id: 'CRT6', top: '49%', left: '276px' },
+    { spot_id: 'CRT7', top: '49%', left: '322px' },
+    { spot_id: 'CRT8', top: '49%', left: '440px' },
+    { spot_id: 'CRT9', top: '49%', left: '485px' },
+    { spot_id: 'CRT10', top: '49%', left: '531px' },
+    { spot_id: 'CRT11', top: '49%', left: '576px' },
+    { spot_id: 'CRT12', top: '49%', left: '621px' },
+    { spot_id: 'CRT13', top: '49%', left: '667px' }
+  ],
+  building4: [
+    { spot_id: 'CIT1', top: '50%', left: '44px' },
+    { spot_id: 'CIT2', top: '50%', left: '78px' },
+    { spot_id: 'CIT3', top: '50%', left: '112px' },
+    { spot_id: 'CIT4', top: '50%', left: '147px' },
+    { spot_id: 'CIT5', top: '50%', left: '181px' },
+    { spot_id: 'CIT6', top: '50%', left: '217px' },
+    { spot_id: 'CIT7', top: '50%', left: '353px' },
+    { spot_id: 'CIT8', top: '50%', left: '387px' },
+    { spot_id: 'CIT9', top: '50%', left: '421px' },
+    { spot_id: 'CIT0', top: '50%', left: '455px' },
+    { spot_id: 'CIT11', top: '50%', left: '490px' },
+    { spot_id: 'CIT12', top: '50%', left: '525px' },
+    { spot_id: 'CIT13', top: '50%', left: '560px' },
+    { spot_id: 'CIT14', top: '50%', left: '595px' },
+    { spot_id: 'CIT15', top: '50%', left: '630px' },
+    { spot_id: 'CIT16', top: '50%', left: '665px' }
+  ],
+  building5: [
+    { spot_id: 'MNT1', top: '52%', left: '295px' },
+    { spot_id: 'MNT2', top: '52%', left: '349px' },
+    { spot_id: 'MNT3', top: '52%', left: '403px' },
+    { spot_id: 'MNT4', top: '52%', left: '459px' },
+    { spot_id: 'MNT5', top: '52%', left: '513px' },
+    { spot_id: 'MNT6', top: '75.9%', left: '295px' },
+    { spot_id: 'MNT7', top: '75.9%', left: '349px' },
+    { spot_id: 'MNT8', top: '75.9%', left: '404px' },
+    { spot_id: 'MNT9', top: '75.9%', left: '460px' },
+    { spot_id: 'MNT10', top: '75.9%', left: '514px' }
+  ],
+  building6: [
+    { spot_id: 'IRTC1', top: '49.8%', left: '213px' },
+    { spot_id: 'IRTC2', top: '49.8%', left: '266px' },
+    { spot_id: 'IRTC3', top: '49.8%', left: '319px' },
+    { spot_id: 'IRTC4', top: '49.8%', left: '374px' },
+    { spot_id: 'IRTC5', top: '49.8%', left: '427px' }
+  ],
+  building7: [
+    { spot_id: 'ADM1', top: '49%', left: '50px' },
+    { spot_id: 'ADM2', top: '49%', left: '101px' },
+    { spot_id: 'ADM3', top: '49%', left: '151px' },
+    { spot_id: 'ADM4', top: '49%', left: '201px' },
+    { spot_id: 'ADM5', top: '49%', left: '251px' },
+    { spot_id: 'ADM6', top: '49%', left: '301px' },
+  ]
+};
+
+// ==========================================
+// 3. CORE LOGIC
+// ==========================================
+
+function updateDashboardCounts(dbSpots, selectedType) {
+  const buildingMap = {
+    building1: 'count-building1', building2: 'count-building2',
+    building3: 'count-building3', building4: 'count-building4',
+    building5: 'count-building5', building6: 'count-building6',
+    building7: 'count-building7'
+  };
+
+  for (const [key, elementId] of Object.entries(buildingMap)) {
+    const spotsInBuilding = parkingSpots[key];
+    if (!spotsInBuilding) continue;
+    const total = spotsInBuilding.length;
+    let occupiedCount = 0;
+
+    spotsInBuilding.forEach(spot => {
+      const dbRecord = dbSpots.find(d => d.slot_number === spot.spot_id);
+      if (dbRecord && (dbRecord.status === 'occupied' || dbRecord.status === 'unavailable')) {
+        // Count specific vehicle type if filtered, or all if 'all'
+        const vType = dbRecord.vehicle_type || '';
+        if (selectedType === 'all' || vType === selectedType) {
+            occupiedCount++;
+        }
+      }
+    });
+
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.innerText = `${occupiedCount}/${total}`;
+        element.className = occupiedCount > 0 ? 'value-red' : 'value-green';
+    }
+  }
+}
+
+async function fetchAndRenderSpots(location) {
+  try {
+    const response = await fetch('/api/spots'); 
+    const dbSpots = await response.json(); 
+
+    const selectedType = vehicleTypeSelect.value;
+    const showAvailable = availableCheckbox.checked;
+    const showUnavailable = unavailableCheckbox.checked;
+
+    // Update numbers based on the filter
+    updateDashboardCounts(dbSpots, selectedType);
+
+    const currentBuildingSpots = parkingSpots[location]; 
+    if (!currentBuildingSpots) return;
+
+    spotsContainer.innerHTML = '';
+
+    currentBuildingSpots.forEach(coordSpot => {
+        const dbData = dbSpots.find(db => db.slot_number === coordSpot.spot_id);
+        
+        const status = dbData ? dbData.status : 'available';
+        const vehicle = dbData ? dbData.plate_number : '';
+        const time = dbData ? dbData.start_time : ''; 
+        const vType = dbData ? dbData.vehicle_type : ''; 
+
+        // --- FILTER LOGIC (THE REQUESTED BEHAVIOR) ---
+        let shouldShow = false;
+
+        if (selectedType === 'all') {
+            // Case 1: "All" is selected -> DEPENDENT on checkboxes
+            if (status === 'available' && showAvailable) shouldShow = true;
+            if (status === 'occupied' && showUnavailable) shouldShow = true;
+        } else {
+            // Case 2: Specific Type (Car/Motorcycle) -> INDEPENDENT
+            // Show ONLY occupied spots of this type. Ignore empty spots.
+            if (status === 'occupied' && vType === selectedType) {
+                shouldShow = true;
+            }
+        }
+
+        if (!shouldShow) return; // Skip rendering this spot
+        // ----------------------------------------------------
+
+        // Create Box
+        const box = document.createElement('div');
+        box.classList.add('spot', status === 'occupied' ? 'unavailable' : 'available');
+        box.style.top = coordSpot.top;
+        box.style.left = coordSpot.left;
+        
+        const size = buildingSpotSizes[location];
+        if (size) {
+          box.style.width = `${size.width}px`;
+          box.style.height = `${size.height}px`;
+        }
+
+        box.addEventListener('click', () => {
+             handleSpotClick({ 
+                 spot_id: coordSpot.spot_id, 
+                 status: status, 
+                 vehicle_no: vehicle, 
+                 park_time: time,
+                 vehicle_type: vType 
+             });
+        });
+
+        spotsContainer.appendChild(box);
+    });
+    
+    setTimeout(() => document.querySelectorAll('.spot').forEach(s => s.classList.add('show')), 50);
+
+  } catch (err) {
+    console.error("Error loading spots:", err);
+  }
+}
+
+// ==========================================
+// 4. MODAL LOGIC (Includes Vehicle Type)
+// ==========================================
+
+function closeModal() {
+  modal.classList.remove('show-modal');
+}
+
+function handleSpotClick(spotData) {
+  modalTitle.textContent = `Spot ID: ${spotData.spot_id}`;
+
+  if (spotData.status === 'occupied' || spotData.status === 'unavailable') {
+    modalBody.innerHTML = `
+      <p>THIS SPOT IS OCCUPIED.</p>
+      <p>Vehicle: <strong>${spotData.vehicle_no}</strong></p>
+      <p>Type: <strong>${spotData.vehicle_type || 'N/A'}</strong></p>
+      <p>Time: <strong>${spotData.park_time ? new Date(spotData.park_time).toLocaleTimeString() : 'N/A'}</strong></p>
+      <div class="modal-actions">
+          <button class="action-btn-release" onclick="releaseSpot('${spotData.spot_id}')">Release Spot</button>
+      </div>
+    `;
+  } else {
+    modalBody.innerHTML = `
+      <p>THIS SPOT IS AVAILABLE.</p>
+      
+      <div class="form-group-modal">
+        <label>Vehicle Number:</label>
+        <input type="text" id="vehicle-input-${spotData.spot_id}" placeholder="Enter plate number" required>
+      </div>
+
+      <div class="form-group-modal">
+        <label>Vehicle Type:</label>
+        <select id="vehicle-type-input-${spotData.spot_id}" style="width: 100%; padding: 10px; border-radius: 5px; color: black;">
+            <option value="Car">Car</option>
+            <option value="Motorcycle">Motorcycle</option>
+            <option value="Van">Van</option>
+            <option value="Others">Others</option>
+        </select>
+      </div>
+
+      <div class="modal-actions">
+          <button class="action-btn-occupy" onclick="occupySpot('${spotData.spot_id}')">Occupy Spot</button>
+      </div>
+    `;
+  }
+  modal.classList.add('show-modal');
+}
+
+function occupySpot(spotId) {
+  const vehicleInput = document.getElementById(`vehicle-input-${spotId}`);
+  const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
+  
+  // Clean inputs
+  const vehicleNo = vehicleInput.value.trim().toUpperCase();
+  const vehicleType = typeInput.value; 
+
+  // Get Local Time
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const time = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+  fetch('/api/update-spot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+          slot_id: spotId, 
+          status: 'occupied', 
+          plate_number: vehicleNo, 
+          park_time: time,
+          vehicle_type: vehicleType 
+      })
+  })
+  .then(response => response.json()) // 1. Decode the JSON response from server
+  .then(data => {
+      // 2. Check if the server said "Success" or "Error"
+      if (data.success) {
+          closeModal();
+          fetchAndRenderSpots(locationSelect.value); 
+      } else {
+          // 3. Show the validation error (e.g., "Invalid Plate Number")
+          alert(data.message); 
+      }
+  })
+  .catch(err => {
+      console.error(err);
+      alert("System Error. Please try again.");
+  });
+}
+
+function releaseSpot(spotId) {
+  if (!confirm(`Release spot ${spotId}?`)) return;
+
+  fetch('/api/update-spot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+          slot_id: spotId, 
+          status: 'available', 
+          plate_number: null, 
+          park_time: null,
+          vehicle_type: null
+      })
+  }).then(() => {
+      closeModal();
+      fetchAndRenderSpots(locationSelect.value);
+  });
+}
+
+window.onclick = (e) => { if (e.target === modal) closeModal(); }
+
+// ==========================================
+// 5. EVENT LISTENERS
+// ==========================================
+
+locationSelect.addEventListener('change', (e) => {
+  const newImage = mapImages[e.target.value] || mapImages.none;
+  mapImage.src = newImage;
+  fetchAndRenderSpots(e.target.value);
+});
+
+// --- UPDATED: Handle Vehicle Type Change (Locks the Checkbox) ---
+vehicleTypeSelect.addEventListener('change', () => {
+    const type = vehicleTypeSelect.value;
+
+    if (type !== 'all') {
+        // LOCK LOGIC: If specific type selected (Car, Van, etc.)
+        availableCheckbox.checked = false; // Uncheck it automatically
+        availableCheckbox.disabled = true; // Disable (Gray out) the box
+        
+        // Optional: You might want to force "Unavailable" to be checked so they see results
+        unavailableCheckbox.checked = true; 
+    } else {
+        // UNLOCK LOGIC: If 'All' is selected
+        availableCheckbox.disabled = false; // Make it clickable again
+    }
+
+    fetchAndRenderSpots(locationSelect.value);
+});
+
+availableCheckbox.addEventListener('change', () => fetchAndRenderSpots(locationSelect.value));
+unavailableCheckbox.addEventListener('change', () => fetchAndRenderSpots(locationSelect.value));
+
+// --- UPDATED: Reset Button (Unlocks everything) ---
+resetButton.addEventListener('click', () => {
+  locationSelect.value = 'none';
+  vehicleTypeSelect.value = 'all'; 
+  
+  // Reset Checkboxes
+  availableCheckbox.disabled = false; // Unlock it!
+  availableCheckbox.checked = false;
+  unavailableCheckbox.checked = false;
+  
+  fetchAndRenderSpots('none');
+});
+
+// Initial Load
+fetchAndRenderSpots('none');
+window.addEventListener("load", () => document.body.classList.add("fade-in"));
+
+// --- LOGS LOGIC ---
+const logsModal = document.getElementById('logs-modal');
+const logsList = document.getElementById('logs-list');
+
+function openLogsModal() {
+    logsModal.classList.add('show-modal');
+    fetchLogs();
+}
+
+function closeLogsModal() {
+    logsModal.classList.remove('show-modal');
+}
+
+async function fetchLogs() {
+    try {
+        const response = await fetch('/api/logs');
+        const logs = await response.json();
+        logsList.innerHTML = '';
+        logs.forEach(log => {
+            const item = document.createElement('div');
+            item.style.padding = '10px';
+            item.style.borderBottom = '1px solid #444';
+            item.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <strong style="color: #22c55e">${log.action}</strong>
+                    <span style="color: #888; font-size: 0.8em;">${new Date(log.timestamp).toLocaleString()}</span>
+                </div>
+                <div style="color: #fff;">${log.username}: ${log.details}</div>
+            `;
+            logsList.appendChild(item);
+        });
+    } catch (err) { console.error(err); }
+}
+window.addEventListener('click', (e) => { if (e.target === logsModal) closeLogsModal(); });
+
+// ==========================================
+// 6. AUTO SESSION TIMEOUT (Idle Detection)
+// ==========================================
+let idleTime = 0;
+
+// Set limit to 15 Minutes (15 * 60 * 1000)
+// FOR TESTING: Change this to 10000 (10 seconds) to see it work quickly!
+const TIMEOUT_LIMIT = 15 * 60 * 1000; 
+
+// Reset the timer whenever the user does something
+function resetTimer() {
+    idleTime = 0;
+}
+
+// Listen for activity
+document.onmousemove = resetTimer;
+document.onkeypress = resetTimer;
+document.onclick = resetTimer;
+document.onscroll = resetTimer;
+
+// Check idle status every second
+setInterval(() => {
+    idleTime += 1000; // Add 1 second to counter
+    
+    if (idleTime >= TIMEOUT_LIMIT) {
+        // 1. Tell Server to log the timeout
+        fetch('/api/session-timeout', { method: 'POST' })
+        .then(() => {
+            // 2. Alert the user and redirect
+            alert("Session Expired due to inactivity. You have been logged out.");
+            window.location.href = '/login-page';
+        });
+    }
+}, 1000);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Reports - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/reportstyle.css">
+    <style>
+        /* --- UPDATED LAYOUT FOR PERFECT CENTERING --- */
+        .nav-controls {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr; /* 3 Columns: Left, Center (Auto), Right */
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .nav-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .nav-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Force buttons to stick to the edges */
+        #prev-btn { justify-self: start; }
+        #next-btn { justify-self: end; }
+        
+        /* Headline Style */
+        .counter { 
+            color: #ccc; 
+            font-size: 1.1em; 
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap; /* Prevent text from stacking */
+        }
+        
+        /* Bottom Row: Delete Button */
+        .delete-container {
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            margin-bottom: 25px;     /* Space between button and form */
+        }
+
+        .delete-btn {
+            background: #ef4444; /* Red */
+            color: white;
+            border: none;
+            padding: 10px 40px; /* Wider button */
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .delete-btn:hover {
+            background: #cc0000;
+        }
+        .delete-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="logo"> 
+      <span>TUPark</span>
+      <img src="/image/TUPARK.png" alt="Logo" class="logo-img">
+    </div> 
+    <nav>
+      <ul>
+        <li><a href="/admin">Home</a></li>
+      </ul>
+    </nav>
+  </header>
+
+    <main class="report-container">
+        <div class="problem-report">
+            
+            <!-- ROW 1: Navigation Controls -->
+            <div class="nav-controls">
+                <button id="prev-btn" class="nav-btn" onclick="changeReport(-1)">&#8592; Previous</button>
+                <span class="counter">Report <span id="current-index">0</span> of <span id="total-count">0</span></span>
+                <button id="next-btn" class="nav-btn" onclick="changeReport(1)">Next &#8594;</button>
+            </div>
+
+            <!-- ROW 2: Delete Button (Centered) -->
+            <div class="delete-container">
+                <button id="delete-btn" class="delete-btn" onclick="deleteCurrentReport()">Delete Report</button>
+            </div>
+
+            <div class="header-section">
+                <label style="color:white; margin-bottom:5px; display:block;">Description:</label>
+                <div class="large-display-area" id="desc-box">
+                  Loading reports...
+                </div>
+            </div>
+
+            <div class="input-grid">
+                
+                <div class="report-group">
+                    <label>Category of Problem:</label>
+                    <div class="display-box" id="cat-box">-</div>
+                </div>
+                
+                <div class="report-group">
+                    <label>Date and Time:</label>
+                    <div class="display-box" id="date-box">-</div>
+                </div>
+
+                <div class="report-group">
+                    <label>Reporter Name:</label>
+                    <div class="display-box" id="name-box">-</div>
+                </div>
+                
+                <div class="report-group">
+                    <label>Vehicle Plate Number:</label>
+                    <div class="display-box" id="plate-box">-</div>
+                </div>
+
+            </div>
+            
+        </div>
+    </main>
+    
+    <script>
+        let reports = [];
+        let currentIndex = 0;
+
+        // 1. Fetch Reports
+        function fetchReports() {
+            fetch('/api/admin/reports')
+                .then(res => res.json())
+                .then(data => {
+                    reports = data;
+                    
+                    if (reports.length > 0) {
+                        if (currentIndex >= reports.length) {
+                            currentIndex = reports.length - 1;
+                        }
+                        renderReport(currentIndex);
+                    } else {
+                        showEmptyState();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('desc-box').innerText = "Error loading reports.";
+                });
+        }
+
+        // 2. Render Report
+        function renderReport(index) {
+            const report = reports[index];
+            
+            document.getElementById('desc-box').innerText = report.description;
+            document.getElementById('cat-box').innerText = report.category;
+            document.getElementById('name-box').innerText = report.reporter_name;
+            document.getElementById('plate-box').innerText = report.plate_number;
+
+            const dateObj = new Date(report.report_date);
+            document.getElementById('date-box').innerText = dateObj.toLocaleString();
+
+            document.getElementById('current-index').innerText = index + 1;
+            document.getElementById('total-count').innerText = reports.length;
+
+            updateButtons();
+        }
+
+        // 3. Empty State
+        function showEmptyState() {
+            document.getElementById('desc-box').innerText = "No reports found.";
+            document.getElementById('cat-box').innerText = "-";
+            document.getElementById('date-box').innerText = "-";
+            document.getElementById('name-box').innerText = "-";
+            document.getElementById('plate-box').innerText = "-";
+            
+            document.getElementById('current-index').innerText = "0";
+            document.getElementById('total-count').innerText = "0";
+            
+            document.getElementById('prev-btn').disabled = true;
+            document.getElementById('next-btn').disabled = true;
+            document.getElementById('delete-btn').disabled = true;
+        }
+
+        // 4. Navigation
+        function changeReport(direction) {
+            const newIndex = currentIndex + direction;
+            if (newIndex >= 0 && newIndex < reports.length) {
+                currentIndex = newIndex;
+                renderReport(currentIndex);
+            }
+        }
+
+        function updateButtons() {
+            document.getElementById('prev-btn').disabled = (currentIndex === 0);
+            document.getElementById('next-btn').disabled = (currentIndex === reports.length - 1);
+            document.getElementById('delete-btn').disabled = false;
+        }
+
+        // 5. Delete Function
+        async function deleteCurrentReport() {
+            const report = reports[currentIndex];
+            if (!report) return;
+
+            if (confirm("Delete this report permanently?")) {
+                try {
+                    const response = await fetch(`/api/admin/reports/${report.id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert("Report deleted.");
+                        fetchReports(); // Refresh
+                    } else {
+                        alert("Error: " + result.message);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert("System Error.");
+                }
+            }
+        }
+
+        // Initialize
+        fetchReports();
+    </script>
+</body>
+</html>

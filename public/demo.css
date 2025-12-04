@@ -1,0 +1,430 @@
+/* =============== RESET & BASE STYLES =============== */
+
+/* =============== MODAL POP-UP STYLES =============== */
+
+/* Modal Backdrop */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1000; /* Sit on top of everything */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0, 0, 0, 0.6); /* Black w/ opacity */
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.modal.show-modal {
+  display: block;
+  opacity: 1;
+}
+
+/* Modal Content Box */
+.modal-content {
+  background-color: #333;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 30px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+  max-width: 400px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  position: relative;
+  animation: modal-open 0.4s;
+}
+
+@keyframes modal-open {
+    from {transform: translateY(-50px); opacity: 0}
+    to {transform: translateY(0); opacity: 1}
+}
+
+.modal-content h3 {
+    margin-bottom: 20px;
+    color: #007bff;
+    font-size: 1.5rem;
+}
+
+.modal-content p {
+    margin-bottom: 10px;
+}
+
+.modal-content p strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Close Button */
+.close-button {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Form Group for Modal */
+.form-group-modal {
+    margin: 15px 0;
+}
+
+.form-group-modal label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group-modal input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #555;
+    background: #444;
+    color: white;
+    outline: none;
+}
+
+/* Action Buttons */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.action-btn-occupy {
+    background-color: #007bff; /* Blue for Occupy */
+    color: white;
+}
+
+.action-btn-occupy:hover {
+    background-color: #0056b3;
+}
+
+.action-btn-release {
+    background-color: #ef4444; /* Red for Release */
+    color: white;
+}
+
+.action-btn-release:hover {
+    background-color: #cc0000;
+}
+
+/* Make spots look clickable */
+.spot {
+    /* Existing spot styles */
+    cursor: pointer; /* Add this line */
+}
+
+/* Remaining original CSS styles here */
+/* ... (Your existing CSS goes below this line) ... */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  background: #1A1A1A;
+  color: white;
+  overflow: auto;  /* allow page scroll */
+  min-height: 100vh; /* full page height */
+  height: 100vh;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+body.fade-in {
+  opacity: 1;
+}
+
+/* Navbar */
+.navbar {
+    position: fixed; /* make navbar stay on top */
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: black;
+  color: white;
+  padding: 15px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100; /* make sure it’s above everything else */
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 2px;
+}
+
+.logo-img {
+  width: 35px;   /* adjust image size */
+  height: 35px;  /* keep proportional */
+  margin-right: 10px; /* space between image and text */
+  object-fit: contain;
+}
+
+
+nav ul {
+  display: flex;
+  list-style: none;
+
+}
+
+nav ul li {
+  margin-left: 35px;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+nav ul li a:hover {
+  color: #007bff;
+}
+
+/* =============== PAGE BACKGROUND =============== */
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1543465077-db45d34b88a5?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3')
+    center/cover no-repeat;
+  z-index: 0;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1;
+}
+
+/* =============== LAYOUT =============== */
+.main-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding-top: 80px;
+  height: 100%;
+}
+
+.container {
+  max-width: 12000px;
+  margin: 0 auto;
+  padding: 0 10px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 30px;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    grid-template-columns: 350px 1fr;
+  }
+}
+
+/* =============== FILTER PANEL =============== */
+.filter-box {
+  background: rgba(96, 96, 96, 0.4);
+  padding: 25px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  height: fit-content;
+  overflow-y: auto;
+}
+
+.filter-box h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reset-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+  transition: 0.3s;
+}
+
+.reset-btn:hover {
+  color: #3b8df7;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  background: rgba(31, 31, 31, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 6px;
+  outline: none;
+}
+
+.section-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 20px 0;
+  padding-top: 15px;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.checkbox-group input {
+  width: 16px;
+  height: 16px;
+  accent-color: #007bff;
+  margin-right: 10px;
+}
+
+.status {
+  margin-top: 10px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.status-item span.value-green {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+.status-item span.value-red {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* =============== MAP AREA =============== */
+.map-area {
+  background: rgba(96, 96, 96, 0.4);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  overflow: hidden;
+}
+
+.map-container {
+  position: relative;
+  align-items: flex-start;
+  width: 115%;
+  height: 87.1%;
+  max-height: 700px;
+  overflow: hidden;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.map-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  width: 739px;
+  height: 600px;
+  display: flex;
+  overflow: auto;    
+  overflow-x: auto;
+  overflow-y: hidden;/* <-- enable scroll */
+  align-items: center;
+  justify-content: center;
+}
+
+.map-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.5s ease-in-out;
+  opacity: 0;
+}
+
+.fade-in {
+  opacity: 1;
+}
+
+.spot {
+  position: absolute;
+  border-radius: 5px;
+  transform: translate(-50%, -50%) scale(0.8);
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.spot.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.spot.available {
+  background-color: #22c55e;
+}
+
+.spot.unavailable {
+  background-color: #ef4444;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
