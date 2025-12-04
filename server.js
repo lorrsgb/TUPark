@@ -1,20 +1,19 @@
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-const mysql = require('mysql2');
-const bcrypt = require('bcrypt'); // Make sure you have installed this: npm install bcrypt
+const { Pool } = require('pg'); // <-- MODIFIED: Switched from 'mysql2' to 'pg'
+const bcrypt = require('bcrypt'); 
 const app = express();
-const PORT = 3000;
-const rateLimit = require('express-rate-limit'); // Make sure you have installed this: npm install express-rate-limit
+const PORT = process.env.PORT || 3000; // MODIFIED: Use environment port for deployment
+const rateLimit = require('express-rate-limit'); 
 
 // Define the Limiter
 const limiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 Minute
-    max: 500, // Increased limit for development
+    windowMs: 1 * 60 * 1000, 
+    max: 1000, // MODIFIED: Increased limit for deployment
     message: "Too many requests from this IP, please try again later."
 });
 
-// Apply to all requests
 app.use(limiter);
 
 // ==========================================
@@ -24,64 +23,64 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- SESSION CONFIGURATION ---
 app.use(session({
     secret: 'tupark-secret-key', 
     resave: false,
     saveUninitialized: true,
     rolling: true, 
-    cookie: { 
-        maxAge: 15 * 60 * 1000 // 15 Minutes
-    }
+    cookie: { maxAge: 15 * 60 * 1000 }
 }));
 
-// --- LOGIN ATTEMPT TRACKER ---
 const loginAttempts = {}; 
 
 // ==========================================
-// 2. DATABASE CONNECTION
+// 2. DATABASE CONNECTION (PostgreSQL/Supabase)
 // ==========================================
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '', 
-    database: 'tupark-db' 
+// MODIFIED: Replaced mysql.createConnection with new Pool for PostgreSQL.
+// Reads credentials from Environment Variables (Vercel/Render) or uses fallbacks.
+const pool = new Pool({
+    // Fallback values for testing locally 
+    user: process.env.DB_USER || 'postgres', 
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'postgres', 
+    password: process.env.DB_PASSWORD || 'your_local_password_here', // IMPORTANT: Change this if testing locally!
+    port: process.env.DB_PORT || 5432, // Default Postgres port is 5432 (or 6543 for Supabase Pooler)
+    ssl: process.env.DB_HOST ? { rejectUnauthorized: false } : false // SSL is required for remote connections (Supabase)
 });
 
-db.connect((err) => {
-    if (err) console.error('Error connecting to MySQL:', err);
-    else console.log('Connected to MySQL Database!');
+// Test connection
+pool.query('SELECT NOW()', (err, res) => {
+    if (err) console.error('Error connecting to PostgreSQL:', err);
+    else console.log('Connected to PostgreSQL Database!');
 });
 
 // ==========================================
-// 3. ACTIVITY LOGGING HELPER
+// 3. ACTIVITY LOGGING HELPER (POSTGRESQL SYNTAX)
 // ==========================================
-function logActivity(username, action, details, req) {
-    const ip = req.ip || req.connection.remoteAddress;
+// MODIFIED: Converted from callback-based db.query to async/await pool.query
+async function logActivity(username, action, details, req) {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     
-    const insertSql = 'INSERT INTO activity_logs (username, action, details, ip_address) VALUES (?, ?, ?, ?)';
-    
-    db.query(insertSql, [username, action, details, ip], (err) => {
-        if (err) {
-            console.error("Logging Error:", err);
-        } else {
-            const cleanupSql = `
-                DELETE FROM activity_logs 
-                WHERE id NOT IN (
-                    SELECT id FROM (
-                        SELECT id FROM activity_logs ORDER BY id DESC LIMIT 100
-                    ) AS keep_rows
-                )
-            `;
-            db.query(cleanupSql, (cleanErr) => {
-                if (cleanErr) console.error("Log Cleanup Error:", cleanErr);
-            });
-        }
-    });
+    try {
+        // PostgreSQL uses $1, $2, etc. for parameters
+        const insertSql = 'INSERT INTO activity_logs (username, action, details, ip_address) VALUES ($1, $2, $3, $4)';
+        await pool.query(insertSql, [username, action, details, ip]);
+        
+        // Cleanup: Delete everything EXCEPT the newest 100 logs (Postgres syntax)
+        const cleanupSql = `
+            DELETE FROM activity_logs 
+            WHERE id NOT IN (
+                SELECT id FROM activity_logs ORDER BY id DESC LIMIT 100
+            )
+        `;
+        await pool.query(cleanupSql);
+    } catch (err) {
+        console.error("Logging Error:", err);
+    }
 }
 
 // ==========================================
-// 4. SECURITY MIDDLEWARE
+// 4. SECURITY MIDDLEWARE (No change needed)
 // ==========================================
 function checkAuth(req, res, next) {
     if (req.session.isLoggedIn) {
@@ -92,92 +91,61 @@ function checkAuth(req, res, next) {
 }
 
 // ==========================================
-// 5. PAGE ROUTES
+// 5. PAGE ROUTES (No change needed)
 // ==========================================
-
-// --- PUBLIC ROUTES (USER SIDE) ---
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'user', 'landing.html'));
-});
-
-app.get('/home', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'user', 'dashboard.html'));
-});
-
-app.get('/demo', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'user', 'demo.html'));
-});
-
-app.get('/report-problem', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'user', 'report-problem.html'));
-});
-
-app.get('/about', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'user', 'about.html'));
-});
-
-app.get('/contact', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'user', 'contact.html'));
-});
-
-app.get('/features', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'user', 'features.html'));
-});
-
-// --- ADMIN ROUTES (PROTECTED) ---
-app.get('/login-page', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'login.html')); 
-});
-
-app.get('/admin', checkAuth, (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'admindemo.html'));
-});
-
-app.get('/admin/reports', checkAuth, (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'Report.html')); 
-});
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'views', 'user', 'landing.html')));
+app.get('/home', (req, res) => res.sendFile(path.join(__dirname, 'views', 'user', 'dashboard.html')));
+app.get('/demo', (req, res) => res.sendFile(path.join(__dirname, 'views', 'user', 'demo.html')));
+app.get('/report-problem', (req, res) => res.sendFile(path.join(__dirname, 'views', 'user', 'report-problem.html')));
+app.get('/about', (req, res) => res.sendFile(path.join(__dirname, 'views', 'user', 'about.html')));
+app.get('/contact', (req, res) => res.sendFile(path.join(__dirname, 'views', 'user', 'contact.html')));
+app.get('/features', (req, res) => res.sendFile(path.join(__dirname, 'views', 'user', 'features.html')));
+app.get('/login-page', (req, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
+app.get('/admin', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'views', 'admindemo.html')));
+app.get('/admin/reports', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'views', 'Report.html')));
 
 // ==========================================
-// 6. API ROUTES
+// 6. API ROUTES (POSTGRESQL REWRITE)
 // ==========================================
+
+// --- LOGOUT ROUTE ---
+app.get('/logout', (req, res) => {
+    if (req.session.username) {
+        logActivity(req.session.username, 'LOGOUT', 'Admin logged out manually', req);
+    }
+    req.session.destroy((err) => {
+        if (err) console.error("Logout Error:", err);
+        res.redirect('/login-page');
+    });
+});
 
 app.post('/api/session-timeout', (req, res) => {
     if (req.session.username) {
         logActivity(req.session.username, 'SESSION_TIMEOUT', 'System auto-logout due to inactivity', req);
     }
-    req.session.destroy(() => {
-        res.json({ success: true });
-    });
+    req.session.destroy(() => { res.json({ success: true }); });
 });
 
-app.post('/login', (req, res) => {
+// --- LOGIN LOGIC ---
+app.post('/login', async (req, res) => { // MODIFIED: Made function async
     const { adminId, password } = req.body;
-    const ip = req.ip || req.connection.remoteAddress;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const now = Date.now();
 
     if (loginAttempts[ip] && loginAttempts[ip].lockUntil > now) {
         const timeLeft = Math.ceil((loginAttempts[ip].lockUntil - now) / 1000);
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        
-        logActivity(adminId || 'Unknown', 'LOGIN_BLOCKED', `Blocked login attempt`, req);
-
-        return res.json({ 
-            success: false, 
-            message: `Account Locked. Too many failed attempts. Try again in ${minutes}m ${seconds}s.` 
-        });
+        return res.json({ success: false, message: `Account Locked. Try again in ${Math.floor(timeLeft / 60)}m ${timeLeft % 60}s.` });
     }
 
-    const sql = 'SELECT * FROM users WHERE username = ?';
-    
-    db.query(sql, [adminId], async (err, results) => {
-        if (err) throw err;
+    try {
+        // MODIFIED: Use pool.query and $1 syntax
+        const result = await pool.query('SELECT * FROM users WHERE username = $1', [adminId]);
+        const results = result.rows; // MODIFIED: Access rows via .rows
         
         let loginSuccess = false;
 
         if (results.length > 0) {
-            const user = results[0];
-            const match = await bcrypt.compare(password, user.password);
+            const match = await bcrypt.compare(password, results[0].password);
             if (match) loginSuccess = true;
         }
 
@@ -185,202 +153,141 @@ app.post('/login', (req, res) => {
             if (loginAttempts[ip]) delete loginAttempts[ip]; 
             req.session.isLoggedIn = true;
             req.session.username = adminId;
-
-            logActivity(adminId, 'LOGIN', 'Admin logged in successfully', req);
-
+            await logActivity(adminId, 'LOGIN', 'Admin logged in successfully', req); // MODIFIED: Await log
             res.json({ success: true });
         } else {
-            logActivity(adminId || 'Unknown', 'LOGIN_FAILED', 'Failed login attempt', req); 
-
-            if (!loginAttempts[ip]) {
-                loginAttempts[ip] = { count: 0, lockUntil: null };
-            }
-
+            await logActivity(adminId || 'Unknown', 'LOGIN_FAILED', 'Failed login attempt', req); // MODIFIED: Await log
+            
+            if (!loginAttempts[ip]) loginAttempts[ip] = { count: 0, lockUntil: null };
             loginAttempts[ip].count++;
-
             if (loginAttempts[ip].count >= 3) {
                 loginAttempts[ip].lockUntil = now + 300000; 
-                return res.json({ 
-                    success: false, 
-                    message: "Too many failed attempts. You are BLOCKED for 5 minutes." 
-                });
+                return res.json({ success: false, message: "Too many failed attempts. You are BLOCKED for 5 minutes." });
             }
-
-            const remaining = 3 - loginAttempts[ip].count;
-            res.status(401).json({ 
-                success: false, 
-                message: `Invalid Account. ${remaining} attempts remaining.` 
-            });
+            res.status(401).json({ success: false, message: `Invalid Account. ${3 - loginAttempts[ip].count} attempts remaining.` });
         }
-    });
-});
-
-
-// --- LOGOUT ROUTE ---
-app.get('/logout', (req, res) => {
-    // 1. Log the action (Optional but good for history)
-    if (req.session.username) {
-        logActivity(req.session.username, 'LOGOUT', 'Admin logged out', req);
+    } catch (err) {
+        console.error("Login Error:", err);
+        res.status(500).json({ success: false, message: "Server error during login." });
     }
-    
-    // 2. Destroy the session
-    req.session.destroy((err) => {
-        if (err) {
-            console.error("Logout Error:", err);
-            return res.redirect('/admin'); // If error, stay on admin page
-        }
-        // 3. Redirect to Login Page
-        res.redirect('/login-page');
-    });
 });
 
-app.get('/api/spots', (req, res) => {
-    db.query('SELECT * FROM slots', (err, results) => {
-        if (err) return res.status(500).json(err);
-        res.json(results);
-    });
+// --- GET PARKING SPOTS ---
+app.get('/api/spots', async (req, res) => { // MODIFIED: Made async
+    try {
+        // MODIFIED: Use pool.query
+        const result = await pool.query('SELECT * FROM slots');
+        res.json(result.rows); // MODIFIED: Access rows via .rows
+    } catch (err) {
+        res.status(500).json(err);
+    }
 });
 
-app.get('/api/logs', checkAuth, (req, res) => {
-    db.query('SELECT * FROM activity_logs ORDER BY timestamp DESC', (err, results) => {
-        if (err) return res.status(500).json(err);
-        res.json(results);
-    });
+// --- GET ACTIVITY LOGS ---
+app.get('/api/logs', checkAuth, async (req, res) => { // MODIFIED: Made async
+    try {
+        // MODIFIED: Use pool.query
+        const result = await pool.query('SELECT * FROM activity_logs ORDER BY timestamp DESC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json(err);
+    }
 });
 
-app.post('/api/update-spot', (req, res) => {
+// --- UPDATE SPOT ---
+app.post('/api/update-spot', async (req, res) => { // MODIFIED: Made async
     const { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
     const currentUser = req.session.username || 'Unknown Admin'; 
 
-    if (status === 'occupied') {
-        const plateRegex = /^[A-Z]{3}[- ]?\d{3,4}$/;
-        if (!plate_number || !plateRegex.test(plate_number)) {
-            return res.json({ success: false, message: "Invalid Plate Number! Format must be LLL-DDD or LLL-DDDD (e.g., ABC-123)." });
-        }
-
-        const validTypes = ['Car', 'Motorcycle', 'Van', 'Others'];
-        if (!validTypes.includes(vehicle_type)) {
-            return res.json({ success: false, message: "Invalid Vehicle Type selected." });
-        }
-
-        if (plate_number.length > 15) {
-             return res.json({ success: false, message: "Plate number is too long." });
-        }
-
-        const checkSql = 'SELECT * FROM slots WHERE plate_number = ? AND status = "occupied" AND slot_number != ?';
-        db.query(checkSql, [plate_number, slot_id], (err, results) => {
-            if (err) return res.json({ success: false, message: "Database Error checking duplicates" });
-            if (results.length > 0) return res.json({ success: false, message: `Error: Vehicle ${plate_number} is already parked at ${results[0].slot_number}!` });
+    try {
+        if (status === 'occupied') {
+            const plateRegex = /^[A-Z]{3}[- ]?\d{3,4}$/;
+            if (!plate_number || !plateRegex.test(plate_number)) return res.json({ success: false, message: "Invalid Plate Number!" });
+            if (!['Car', 'Motorcycle', 'Van', 'Others'].includes(vehicle_type)) return res.json({ success: false, message: "Invalid Vehicle Type." });
             
-            executeUpdate(currentUser);
-        });
-
-    } else {
-        executeUpdate(currentUser);
-    }
-
-    function executeUpdate(user) {
-        const sql = 'UPDATE slots SET status = ?, plate_number = ?, start_time = ?, vehicle_type = ? WHERE slot_number = ?';
-        db.query(sql, [status, plate_number, park_time, vehicle_type, slot_id], (err, result) => {
-            if (err) return res.status(500).json({ success: false, message: "Database Update Failed" });
+            // MODIFIED: Check for duplicates using pool.query and $1, $2, $3
+            const checkResult = await pool.query('SELECT * FROM slots WHERE plate_number = $1 AND status = $2 AND slot_number != $3', [plate_number, 'occupied', slot_id]);
+            if (checkResult.rows.length > 0) return res.json({ success: false, message: `Error: Vehicle ${plate_number} is already parked at ${checkResult.rows[0].slot_number}!` });
             
-            const actionType = status === 'occupied' ? 'OCCUPY_SPOT' : 'RELEASE_SPOT';
-            const details = status === 'occupied' 
-                ? `Parked ${plate_number} (${vehicle_type}) at ${slot_id}`
-                : `Released spot ${slot_id}`;
-                
-            logActivity(user, actionType, details, req);
-
-            res.json({ success: true });
-        });
-    }
-});
-
-// ==========================================
-// 7. REPORT SYSTEM ROUTES (WITH VALIDATION)
-// ==========================================
-
-// --- USER: SUBMIT A REPORT ---
-app.post('/api/submit-report', (req, res) => {
-    const { category, description, name, plate } = req.body;
-    
-    // 1. Check if fields are filled
-    if (!category || !description || !name || !plate) {
-        return res.json({ success: false, message: "All fields are required." });
+            await executeUpdate(currentUser);
+        } else {
+            await executeUpdate(currentUser);
+        }
+    } catch (err) {
+        console.error("Update Spot Error:", err);
+        res.status(500).json({ success: false, message: "Database Operation Failed" });
     }
 
-    // 2. VERIFY PLATE EXISTS IN DATABASE
-    const checkPlateSql = 'SELECT * FROM slots WHERE plate_number = ? AND status = "occupied"';
-
-    db.query(checkPlateSql, [plate], (err, results) => {
-        if (err) {
-            console.error("Database Error during verification:", err);
-            return res.json({ success: false, message: "System Error verifying license plate." });
-        }
-
-        // If results array is empty, the car is NOT currently parked
-        if (results.length === 0) {
-            return res.json({ 
-                success: false, 
-                message: `Report Failed: Vehicle ${plate} is not currently parked in our facility.` 
-            });
-        }
-
-        // 3. If Valid (Car exists), Proceed to Save
-        const sql = 'INSERT INTO problem_reports (category, description, reporter_name, plate_number) VALUES (?, ?, ?, ?)';
+    async function executeUpdate(user) {
+        // MODIFIED: Postgres query uses $1, $2, etc.
+        const sql = 'UPDATE slots SET status = $1, plate_number = $2, start_time = $3, vehicle_type = $4 WHERE slot_number = $5';
+        await pool.query(sql, [status, plate_number, park_time, vehicle_type, slot_id]);
         
-        db.query(sql, [category, description, name, plate], (insertErr, result) => {
-            if (insertErr) {
-                console.error("Database Error saving report:", insertErr);
-                return res.json({ success: false, message: "Database Error saving report." });
-            }
-            console.log(`New Report Received for ${plate}`);
-            res.json({ success: true });
-        });
-    });
-});
-
-// --- ADMIN: DELETE A REPORT ---
-app.delete('/api/admin/reports/:id', checkAuth, (req, res) => {
-    const reportId = req.params.id;
-    
-    // Check if ID is valid
-    if (!reportId) {
-        return res.json({ success: false, message: "Invalid Report ID" });
-    }
-
-    const sql = 'DELETE FROM problem_reports WHERE id = ?';
-    db.query(sql, [reportId], (err, result) => {
-        if (err) {
-            console.error("Delete Error:", err);
-            return res.json({ success: false, message: "Database Error" });
-        }
-        
-        // Log the action
-        const user = req.session.username || 'Admin';
-        logActivity(user, 'DELETE_REPORT', `Deleted report ID: ${reportId}`, req);
-        
+        const actionType = status === 'occupied' ? 'OCCUPY_SPOT' : 'RELEASE_SPOT';
+        const details = status === 'occupied' ? `Parked ${plate_number} (${vehicle_type}) at ${slot_id}` : `Released spot ${slot_id}`;
+        await logActivity(user, actionType, details, req);
         res.json({ success: true });
-    });
+    }
 });
 
-// --- ADMIN: GET ALL REPORTS ---
-app.get('/api/admin/reports', checkAuth, (req, res) => {
-    db.query('SELECT * FROM problem_reports ORDER BY report_date DESC', (err, results) => {
-        if (err) return res.status(500).json(err);
-        res.json(results);
-    });
+// --- USER REPORT SUBMISSION ---
+app.post('/api/submit-report', async (req, res) => { // MODIFIED: Made async
+    const { category, description, name, plate } = req.body;
+    if (!category || !description || !name || !plate) return res.json({ success: false, message: "All fields are required." });
+
+    try {
+        // MODIFIED: VERIFY PLATE EXISTS IN DATABASE
+        const checkPlateSql = 'SELECT * FROM slots WHERE plate_number = $1 AND status = $2';
+        const checkResult = await pool.query(checkPlateSql, [plate, 'occupied']);
+
+        if (checkResult.rows.length === 0) {
+            return res.json({ success: false, message: `Report Failed: Vehicle ${plate} is not currently parked in our facility.` });
+        }
+
+        // MODIFIED: Insert Report using pool.query
+        const insertSql = 'INSERT INTO problem_reports (category, description, reporter_name, plate_number) VALUES ($1, $2, $3, $4)';
+        await pool.query(insertSql, [category, description, name, plate]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Submit Report Error:", err);
+        res.json({ success: false, message: "Server error during report submission." });
+    }
 });
 
-// Helper for hashing (optional, for creating admin users)
+// --- ADMIN REPORT ACTIONS ---
+app.get('/api/admin/reports', checkAuth, async (req, res) => { // MODIFIED: Made async
+    try {
+        // MODIFIED: Use pool.query
+        const result = await pool.query('SELECT * FROM problem_reports ORDER BY report_date DESC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
+app.delete('/api/admin/reports/:id', checkAuth, async (req, res) => { // MODIFIED: Made async
+    const reportId = req.params.id;
+    try {
+        // MODIFIED: Use pool.query and $1
+        await pool.query('DELETE FROM problem_reports WHERE id = $1', [reportId]);
+        await logActivity(req.session.username || 'Admin', 'DELETE_REPORT', `Deleted report ID: ${reportId}`, req);
+        res.json({ success: true });
+    } catch (err) {
+        res.json({ success: false, message: "Database Error" });
+    }
+});
+
+// Helper for hashing (No change needed)
 app.post('/api/hash-password', async (req, res) => {
-    const { password } = req.body;
-    if (!password) return res.json({ error: "No password provided" });
-    const hash = await bcrypt.hash(password, 10);
-    res.json({ original: password, hashed: hash });
+    const hash = await bcrypt.hash(req.body.password, 10);
+    res.json({ hashed: hash });
 });
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-});
+// Export the app for Vercel/Render
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running at http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;
