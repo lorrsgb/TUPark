@@ -27,6 +27,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+const loginAttempts = {};
+
 // ==========================================
 // 2. DATABASE CONNECTION (PostgreSQL/Supabase)
 // ==========================================
