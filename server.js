@@ -1,17 +1,16 @@
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-const pgSession = require('connect-pg-simple')(session); // NEW: Production Session Store
-const { Pool } = require('pg'); // PostgreSQL client
+const { Pool } = require('pg'); // <-- MODIFIED: Switched from 'mysql2' to 'pg'
 const bcrypt = require('bcrypt'); 
 const app = express();
-const PORT = process.env.PORT || 3000; 
+const PORT = process.env.PORT || 3000; // MODIFIED: Use environment port for deployment
 const rateLimit = require('express-rate-limit'); 
 
 // Define the Limiter
 const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, 
-    max: 1000, 
+    max: 1000, // MODIFIED: Increased limit for deployment
     message: "Too many requests from this IP, please try again later."
 });
 
@@ -20,27 +19,33 @@ app.use(limiter);
 // ==========================================
 // 1. APP CONFIGURATION
 // ==========================================
-// NEW: Required for Vercel/Render. Allows express-rate-limit to correctly read the user's IP address.
-app.set('trust proxy', 1); 
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(session({
+    secret: 'tupark-secret-key', 
+    resave: false,
+    saveUninitialized: true,
+    rolling: true, 
+    cookie: { maxAge: 15 * 60 * 1000 }
+}));
+
+const loginAttempts = {}; 
+
 // ==========================================
 // 2. DATABASE CONNECTION (PostgreSQL/Supabase)
 // ==========================================
+// MODIFIED: Replaced mysql.createConnection with new Pool for PostgreSQL.
+// Reads credentials from Environment Variables (Vercel/Render) or uses fallbacks.
 const pool = new Pool({
-    // Reads credentials from Environment Variables (Vercel/Render) or uses fallbacks.
+    // Fallback values for testing locally 
     user: process.env.DB_USER || 'postgres', 
     host: process.env.DB_HOST || 'localhost',
     database: process.env.DB_NAME || 'postgres', 
-    password: process.env.DB_PASSWORD || 'your_local_password_here', 
-    port: process.env.DB_PORT || 5432, 
-    // FINAL FIX: Hardened SSL configuration for deployment platforms
-    ssl: process.env.DB_HOST ? { 
-        rejectUnauthorized: false
-    } : false
+    password: process.env.DB_PASSWORD || 'your_local_password_here', // IMPORTANT: Change this if testing locally!
+    port: process.env.DB_PORT || 5432, // Default Postgres port is 5432 (or 6543 for Supabase Pooler)
+    ssl: process.env.DB_HOST ? { rejectUnauthorized: false } : false // SSL is required for remote connections (Supabase)
 });
 
 // Test connection
@@ -49,36 +54,19 @@ pool.query('SELECT NOW()', (err, res) => {
     else console.log('Connected to PostgreSQL Database!');
 });
 
-// --- SESSION CONFIGURATION (PRODUCTION SAFE) ---
-app.use(session({
-    // Store sessions in the Postgres database, fixing the memory leak error.
-    store: new pgSession({
-        pool: pool, 
-        tableName: 'user_sessions' 
-    }),
-    secret: 'tupark-secret-key', 
-    resave: false,
-    saveUninitialized: true,
-    rolling: true, 
-    cookie: { 
-        maxAge: 15 * 60 * 1000, 
-        secure: process.env.NODE_ENV === 'production', // Secure cookies are required when hosted (Vercel)
-        httpOnly: true,
-        sameSite: 'lax'
-    }
-}));
-
-
 // ==========================================
 // 3. ACTIVITY LOGGING HELPER (POSTGRESQL SYNTAX)
 // ==========================================
+// MODIFIED: Converted from callback-based db.query to async/await pool.query
 async function logActivity(username, action, details, req) {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     
     try {
+        // PostgreSQL uses $1, $2, etc. for parameters
         const insertSql = 'INSERT INTO activity_logs (username, action, details, ip_address) VALUES ($1, $2, $3, $4)';
         await pool.query(insertSql, [username, action, details, ip]);
         
+        // Cleanup: Delete everything EXCEPT the newest 100 logs (Postgres syntax)
         const cleanupSql = `
             DELETE FROM activity_logs 
             WHERE id NOT IN (
@@ -92,7 +80,7 @@ async function logActivity(username, action, details, req) {
 }
 
 // ==========================================
-// 4. SECURITY MIDDLEWARE
+// 4. SECURITY MIDDLEWARE (No change needed)
 // ==========================================
 function checkAuth(req, res, next) {
     if (req.session.isLoggedIn) {
@@ -103,7 +91,7 @@ function checkAuth(req, res, next) {
 }
 
 // ==========================================
-// 5. PAGE ROUTES
+// 5. PAGE ROUTES (No change needed)
 // ==========================================
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'views', 'user', 'landing.html')));
 app.get('/home', (req, res) => res.sendFile(path.join(__dirname, 'views', 'user', 'dashboard.html')));
@@ -139,7 +127,7 @@ app.post('/api/session-timeout', (req, res) => {
 });
 
 // --- LOGIN LOGIC ---
-app.post('/login', async (req, res) => { 
+app.post('/login', async (req, res) => { // MODIFIED: Made function async
     const { adminId, password } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const now = Date.now();
@@ -150,8 +138,9 @@ app.post('/login', async (req, res) => {
     }
 
     try {
+        // MODIFIED: Use pool.query and $1 syntax
         const result = await pool.query('SELECT * FROM users WHERE username = $1', [adminId]);
-        const results = result.rows; 
+        const results = result.rows; // MODIFIED: Access rows via .rows
         
         let loginSuccess = false;
 
@@ -164,10 +153,10 @@ app.post('/login', async (req, res) => {
             if (loginAttempts[ip]) delete loginAttempts[ip]; 
             req.session.isLoggedIn = true;
             req.session.username = adminId;
-            await logActivity(adminId, 'LOGIN', 'Admin logged in successfully', req);
+            await logActivity(adminId, 'LOGIN', 'Admin logged in successfully', req); // MODIFIED: Await log
             res.json({ success: true });
         } else {
-            await logActivity(adminId || 'Unknown', 'LOGIN_FAILED', 'Failed login attempt', req); 
+            await logActivity(adminId || 'Unknown', 'LOGIN_FAILED', 'Failed login attempt', req); // MODIFIED: Await log
             
             if (!loginAttempts[ip]) loginAttempts[ip] = { count: 0, lockUntil: null };
             loginAttempts[ip].count++;
@@ -184,18 +173,20 @@ app.post('/login', async (req, res) => {
 });
 
 // --- GET PARKING SPOTS ---
-app.get('/api/spots', async (req, res) => { 
+app.get('/api/spots', async (req, res) => { // MODIFIED: Made async
     try {
+        // MODIFIED: Use pool.query
         const result = await pool.query('SELECT * FROM slots');
-        res.json(result.rows);
+        res.json(result.rows); // MODIFIED: Access rows via .rows
     } catch (err) {
         res.status(500).json(err);
     }
 });
 
 // --- GET ACTIVITY LOGS ---
-app.get('/api/logs', checkAuth, async (req, res) => { 
+app.get('/api/logs', checkAuth, async (req, res) => { // MODIFIED: Made async
     try {
+        // MODIFIED: Use pool.query
         const result = await pool.query('SELECT * FROM activity_logs ORDER BY timestamp DESC');
         res.json(result.rows);
     } catch (err) {
@@ -204,7 +195,7 @@ app.get('/api/logs', checkAuth, async (req, res) => {
 });
 
 // --- UPDATE SPOT ---
-app.post('/api/update-spot', async (req, res) => { 
+app.post('/api/update-spot', async (req, res) => { // MODIFIED: Made async
     const { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
     const currentUser = req.session.username || 'Unknown Admin'; 
 
@@ -214,7 +205,7 @@ app.post('/api/update-spot', async (req, res) => {
             if (!plate_number || !plateRegex.test(plate_number)) return res.json({ success: false, message: "Invalid Plate Number!" });
             if (!['Car', 'Motorcycle', 'Van', 'Others'].includes(vehicle_type)) return res.json({ success: false, message: "Invalid Vehicle Type." });
             
-            // Check for duplicates
+            // MODIFIED: Check for duplicates using pool.query and $1, $2, $3
             const checkResult = await pool.query('SELECT * FROM slots WHERE plate_number = $1 AND status = $2 AND slot_number != $3', [plate_number, 'occupied', slot_id]);
             if (checkResult.rows.length > 0) return res.json({ success: false, message: `Error: Vehicle ${plate_number} is already parked at ${checkResult.rows[0].slot_number}!` });
             
@@ -228,7 +219,7 @@ app.post('/api/update-spot', async (req, res) => {
     }
 
     async function executeUpdate(user) {
-        // Postgres query uses $1, $2, etc.
+        // MODIFIED: Postgres query uses $1, $2, etc.
         const sql = 'UPDATE slots SET status = $1, plate_number = $2, start_time = $3, vehicle_type = $4 WHERE slot_number = $5';
         await pool.query(sql, [status, plate_number, park_time, vehicle_type, slot_id]);
         
@@ -240,12 +231,12 @@ app.post('/api/update-spot', async (req, res) => {
 });
 
 // --- USER REPORT SUBMISSION ---
-app.post('/api/submit-report', async (req, res) => { 
+app.post('/api/submit-report', async (req, res) => { // MODIFIED: Made async
     const { category, description, name, plate } = req.body;
     if (!category || !description || !name || !plate) return res.json({ success: false, message: "All fields are required." });
 
     try {
-        // VERIFY PLATE EXISTS IN DATABASE
+        // MODIFIED: VERIFY PLATE EXISTS IN DATABASE
         const checkPlateSql = 'SELECT * FROM slots WHERE plate_number = $1 AND status = $2';
         const checkResult = await pool.query(checkPlateSql, [plate, 'occupied']);
 
@@ -253,6 +244,7 @@ app.post('/api/submit-report', async (req, res) => {
             return res.json({ success: false, message: `Report Failed: Vehicle ${plate} is not currently parked in our facility.` });
         }
 
+        // MODIFIED: Insert Report using pool.query
         const insertSql = 'INSERT INTO problem_reports (category, description, reporter_name, plate_number) VALUES ($1, $2, $3, $4)';
         await pool.query(insertSql, [category, description, name, plate]);
         res.json({ success: true });
@@ -263,8 +255,9 @@ app.post('/api/submit-report', async (req, res) => {
 });
 
 // --- ADMIN REPORT ACTIONS ---
-app.get('/api/admin/reports', checkAuth, async (req, res) => { 
+app.get('/api/admin/reports', checkAuth, async (req, res) => { // MODIFIED: Made async
     try {
+        // MODIFIED: Use pool.query
         const result = await pool.query('SELECT * FROM problem_reports ORDER BY report_date DESC');
         res.json(result.rows);
     } catch (err) {
@@ -272,9 +265,10 @@ app.get('/api/admin/reports', checkAuth, async (req, res) => {
     }
 });
 
-app.delete('/api/admin/reports/:id', checkAuth, async (req, res) => { 
+app.delete('/api/admin/reports/:id', checkAuth, async (req, res) => { // MODIFIED: Made async
     const reportId = req.params.id;
     try {
+        // MODIFIED: Use pool.query and $1
         await pool.query('DELETE FROM problem_reports WHERE id = $1', [reportId]);
         await logActivity(req.session.username || 'Admin', 'DELETE_REPORT', `Deleted report ID: ${reportId}`, req);
         res.json({ success: true });
@@ -283,7 +277,7 @@ app.delete('/api/admin/reports/:id', checkAuth, async (req, res) => {
     }
 });
 
-// Helper for hashing
+// Helper for hashing (No change needed)
 app.post('/api/hash-password', async (req, res) => {
     const hash = await bcrypt.hash(req.body.password, 10);
     res.json({ hashed: hash });
