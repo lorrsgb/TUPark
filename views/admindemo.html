@@ -20,6 +20,7 @@
     <nav>
       <ul>
         <li><a href="/admin">Home</a></li>
+        <li><a href="/admin/statistics">Statistics</a></li>
         <li><a href="/admin/reports">User Reports</a></li>
         <li><a href="#" onclick="openLogsModal()">Admin Logs</a></li>
         <li><a href="/logout" style="color: #ff4444;">Logout</a></li>
@@ -109,36 +110,6 @@
           </div>
         </div>
       </div>
-
-<section class="stats-section">
-  <h2>Occupancy Statistics</h2>
-
-  <div class="stats-tabs">
-    <button class="tab-btn active" data-target="daily">Daily</button>
-    <button class="tab-btn" data-target="weekly">Weekly</button>
-    <button class="tab-btn" data-target="monthly">Monthly</button>
-  </div>
-
-  <div class="stats-content">
-      
-    <!-- Daily Chart -->
-    <div class="stat-panel" id="daily-panel">
-      <canvas id="dailyChart"></canvas>
-    </div>
-
-    <!-- Weekly Chart -->
-    <div class="stat-panel hidden" id="weekly-panel">
-      <canvas id="weeklyChart"></canvas>
-    </div>
-
-    <!-- Monthly Chart -->
-    <div class="stat-panel hidden" id="monthly-panel">
-      <canvas id="monthlyChart"></canvas>
-    </div>
-
-  </div>
-</section>
-
 
       <div class="map-wrapper">
       <div class="map-area">
