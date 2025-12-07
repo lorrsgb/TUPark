@@ -117,7 +117,7 @@ app.get('/features', (req, res) => res.sendFile(path.join(__dirname, 'views', 'u
 app.get('/login-page', (req, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
 app.get('/admin', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'views', 'admindemo.html')));
 app.get('/admin/reports', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'views', 'Report.html')));
-app.get('/admin/statistics', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'views', 'admin-stats.html')));
+
 
 // ==========================================
 // 6. API ROUTES (POSTGRESQL REWRITE)
@@ -298,87 +298,5 @@ if (require.main === module) {
         console.log(`Server running at http://localhost:${PORT}`);
     });
 }
-
-// ==========================================
-// 7. STATISTICS API (Daily, Weekly, Monthly)
-// ==========================================
-app.get('/api/stats', checkAuth, async (req, res) => {
-    const range = req.query.range || "daily";
-
-    try {
-        let query = "";
-        let groupLabel = "";
-
-        if (range === "daily") {
-            // Past 7 days (group by day)
-            query = `
-                SELECT 
-                    TO_CHAR(start_time, 'Mon DD') AS label,
-                    COUNT(*) FILTER (WHERE status = 'occupied') AS count
-                FROM slots
-                WHERE start_time >= NOW() - INTERVAL '7 days'
-                GROUP BY label
-                ORDER BY MIN(start_time)
-            `;
-            groupLabel = "Day";
-        }
-
-        else if (range === "weekly") {
-            // Past 8 weeks (group by week)
-            query = `
-                SELECT 
-                    'Week ' || EXTRACT(WEEK FROM start_time) AS label,
-                    COUNT(*) FILTER (WHERE status = 'occupied') AS count
-                FROM slots
-                WHERE start_time >= NOW() - INTERVAL '8 weeks'
-                GROUP BY label
-                ORDER BY MIN(start_time)
-            `;
-            groupLabel = "Week";
-        }
-
-        else if (range === "monthly") {
-            // Past 6 months (group by month)
-            query = `
-                SELECT 
-                    TO_CHAR(start_time, 'Mon YYYY') AS label,
-                    COUNT(*) FILTER (WHERE status = 'occupied') AS count
-                FROM slots
-                WHERE start_time >= NOW() - INTERVAL '6 months'
-                GROUP BY label
-                ORDER BY MIN(start_time)
-            `;
-            groupLabel = "Month";
-        }
-
-        const dbResponse = await pool.query(query);
-        const rows = dbResponse.rows;
-
-        const labels = rows.map(r => r.label);
-        const values = rows.map(r => Number(r.count));
-
-        // Compute analytics
-        const peakIndex = values.indexOf(Math.max(...values));
-        const slowIndex = values.indexOf(Math.min(...values));
-
-        const peak = labels[peakIndex] || "N/A";
-        const slow = labels[slowIndex] || "N/A";
-
-        const average =
-            values.length > 0 ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2) : 0;
-
-        res.json({
-            labels,
-            values,
-            peak,
-            slow,
-            average
-        });
-
-    } catch (err) {
-        console.error("Stats API Error:", err);
-        res.status(500).json({ error: "Failed to load statistics" });
-    }
-});
 
 module.exports = app;
