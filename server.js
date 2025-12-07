@@ -117,7 +117,7 @@ app.get('/features', (req, res) => res.sendFile(path.join(__dirname, 'views', 'u
 app.get('/login-page', (req, res) => res.sendFile(path.join(__dirname, 'views', 'login.html')));
 app.get('/admin', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'views', 'admindemo.html')));
 app.get('/admin/reports', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'views', 'Report.html')));
-app.get('/admin/statistics', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'views', 'admin.stats.html')));
+app.get('/admin/statistics', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'views', 'admin-stats.html')));
 
 // ==========================================
 // 6. API ROUTES (POSTGRESQL REWRITE)
