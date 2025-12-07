@@ -6,15 +6,22 @@
   font-family: 'Poppins', sans-serif;
 }
 
+/* Base Body Style for Background and Initial Setup */
 body.home-page {
-    content: "";
-  position: center;
-  inset: 0;
+  /* Removed: content: "" and position: center; which were invalid CSS */
+  position: relative;
   background: url('bg-home.png') center/cover no-repeat; 
   z-index: 0;
-  height:100vh
-   
+  height: 100vh;
+  /* Added display properties to center the content block */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Removed fixed padding-left as we are centering */
+  color: white;
+  overflow: hidden; /* prevent scrolling issues */
 }
+
 
 /* Navbar */
 .navbar {
@@ -70,50 +77,40 @@ nav ul li a:hover {
   color: #007bff;
 }
 
-/* Hero Section */
-.home-page {
-    position: relative;
-  height: 100vh;
-  background:  url('bg-home.png');
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding-left: 200px;
-  padding-top: 80px; /* 👈 adds space below navbar */
-  color: white;
-  overflow: hidden; /* prevent scrolling issues */
-
-}
-
-
-
+/* Front Content / Login Container */
 .Front-content {
   position: relative;
   z-index: 2;
-  text-align: left;
-  max-width: 600px;
+  text-align: center; /* Center text/form block */
+  /* Adjusted max-width to control the overall width of the form elements */
+  max-width: 400px; /* SHORTER WIDTH for the whole content block */
+  padding: 40px 20px;
+  background: rgba(0, 0, 0, 0.7); /* Optional: dark background for form contrast */
+  border-radius: 10px;
 }
 
-.Front-content h1 {
-  font-size: 4rem;
-  font-family: Arial;
-  font-weight: 1000;
-  line-height: 1;
-  color: #ffffff;
-  margin-bottom: 10px; 
-  letter-spacing: 3px;
-
+/* 1. ADMIN LOG IN TEXT ENLARGED */
+.Front-content h2 {
+  font-size: 3rem; /* Made the h2 bigger than the default */
+  font-weight: 800;
+  line-height: 1.2;
+  color: #007bff; /* Use blue for emphasis */
+  margin-bottom: 5px; 
 }
 
-.container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 60px;
-  flex-wrap: wrap;
-  padding: 0 40px;
+/* 2. SUB-TEXT PROPORTION FIXED */
+.Front-content p {
+  font-size: 1rem;
+  line-height: 1.4; /* Ensure it fits nicely on two lines */
+  color: #ddd;
+  margin: 0 0 25px 0; /* Adjusted top/bottom margin */
+}
+
+/* Form Styles */
+.Front-content form {
+    /* Use max-width here to ensure the form itself doesn't stretch the container */
+    max-width: 300px; /* Further restricts input width */
+    margin: 0 auto; /* Center the form block within Front-content */
 }
 
 label {
@@ -121,10 +118,12 @@ label {
   margin-bottom: 5px;
   font-size: 0.9rem;
   color: #ddd;
+  text-align: left; /* Keep labels left-aligned within the form */
 }
 
+/* 3. SHORTER INPUT BARS */
 input {
-  width: 100%;
+  width: 100%; /* Stays 100% of the form's max-width (300px) */
   padding: 10px;
   margin-bottom: 20px;
   border: none;
@@ -144,7 +143,7 @@ input {
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
-  margin-top: 5px;
+  margin-top: 25px; /* Added spacing above the button */
 }
 
 .login-btn:hover {
@@ -180,5 +179,3 @@ body.fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
-
