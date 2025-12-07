@@ -69,6 +69,11 @@
             cursor: not-allowed;
             opacity: 0.5;
         }
+        
+        /* NEW STYLE: Make the Reporter Name span two columns (full width) */
+        .full-width {
+            grid-column: 1 / -1; 
+        }
     </style>
 </head>
 <body>
@@ -118,18 +123,18 @@
                 </div>
 
                 <div class="report-group">
-                    <label>Reporter Name:</label>
-                    <div class="display-box" id="name-box">-</div>
+                    <label>Vehicle Plate Number:</label>
+                    <div class="display-box" id="plate-box">-</div>
                 </div>
                 
                 <div class="report-group">
                     <label>Reported Slot ID:</label>
                     <div class="display-box" id="slot-box">-</div> 
                 </div>
-                
-                <div class="report-group">
-                    <label>Vehicle Plate Number:</label>
-                    <div class="display-box" id="plate-box">-</div>
+
+                <div class="report-group full-width">
+                    <label>Reporter Name:</label>
+                    <div class="display-box" id="name-box">-</div>
                 </div>
 
             </div>
