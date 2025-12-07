@@ -50,3 +50,69 @@ btn.addEventListener("click", (e) => {
       alert("System Error. Please try again.");
   });
 });
+// ==============================
+// LOAD OCCUPANCY STATISTICS
+// ==============================
+async function loadUsageStatistics(range = "daily") {
+    try {
+        const response = await fetch(`/api/stats?range=${range}`);
+        const data = await response.json();
+
+        // Chart Canvas
+        let canvas = document.getElementById("usageStatsChart");
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+
+        // Destroy old chart if it exists
+        if (window.usageChart) window.usageChart.destroy();
+
+        // Create new Chart
+        window.usageChart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: data.labels,
+                datasets: [
+                    {
+                        label: `${range.charAt(0).toUpperCase() + range.slice(1)} Occupancy`,
+                        data: data.values,
+                        borderWidth: 3,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Fill Summary Table
+        document.getElementById("usage-stats-summary").innerHTML = `
+            <tr>
+                <td>${range}</td>
+                <td>${data.peak}</td>
+                <td>${data.slow}</td>
+                <td>${data.average}</td>
+            </tr>
+        `;
+    } catch (err) {
+        console.error("Stats loading error:", err);
+    }
+}
+
+// ==============================
+// HANDLE TAB CLICKS
+// ==============================
+document.addEventListener("click", (e) => {
+    if (e.target.classList.contains("stats-tab")) {
+        document.querySelectorAll(".stats-tab").forEach(btn => btn.classList.remove("active"));
+        e.target.classList.add("active");
+
+        const range = e.target.getAttribute("data-range");
+        loadUsageStatistics(range);
+    }
+});

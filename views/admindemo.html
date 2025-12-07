@@ -141,6 +141,34 @@
       </div>
   </div>
 </div>
+<hr style="margin: 20px 0; opacity:0.3;">
+
+<h2 style="margin-top: 10px;">Occupancy Statistics</h2>
+
+<!-- Stats Tabs -->
+<div class="stats-tabs" style="margin-top: 10px; display:flex; gap:10px;">
+    <button class="stats-tab active" data-range="daily">Daily</button>
+    <button class="stats-tab" data-range="weekly">Weekly</button>
+    <button class="stats-tab" data-range="monthly">Monthly</button>
+</div>
+
+<!-- Chart -->
+<div style="background: rgba(255,255,255,0.05); padding:15px; border-radius:10px; height:280px; margin-top:15px;">
+    <canvas id="usageStatsChart"></canvas>
+</div>
+
+<!-- Summary Table -->
+<table class="stats-table" style="margin-top:20px; width:100%;">
+    <thead>
+        <tr>
+            <th>Period</th>
+            <th>Peak Day</th>
+            <th>Slow Day</th>
+            <th>Average Occupancy</th>
+        </tr>
+    </thead>
+    <tbody id="usage-stats-summary"></tbody>
+</table>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
