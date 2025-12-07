@@ -94,9 +94,13 @@ nav ul li a:hover {
 }
 
 /* Re-align card contents back to center *within the card* for better layout */
-.Front-content h2,
-.Front-content p,
-.Front-content .login-btn {
+.Front-content h2 {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.Front-content p {
     text-align: center;
     margin-left: auto;
     margin-right: auto;
@@ -145,6 +149,7 @@ input {
   font-size: 0.90rem;
 }
 
+/* LOG IN BUTTON CENTERING MODIFICATION */
 .login-btn {
   background: #555;
   border: none;
@@ -156,6 +161,12 @@ input {
   cursor: pointer;
   transition: 0.3s;
   margin-top: 25px; 
+  
+  /* === NEW CENTERING STYLES === */
+  display: block; /* Important: Make the button a block element to accept margins */
+  margin-left: auto;
+  margin-right: auto;
+  /* ============================ */
 }
 
 .login-btn:hover {
