@@ -131,19 +131,59 @@
   </div>
 
   <div id="logs-modal" class="modal">
-  <div class="modal-content" style="max-width: 700px; height: 80vh; display: flex; flex-direction: column;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h3>System Activity Logs</h3>
-        <span class="close-button" onclick="closeLogsModal()">&times;</span>
-      </div>
-      <div id="logs-list" style="flex: 1; overflow-y: auto; border-top: 1px solid #555; padding-top: 10px;">
-          <p>Loading...</p>
-      </div>
-  </div>
-</div>
-<hr style="margin: 20px 0; opacity:0.3;">
+    <div class="modal-content usage-modal">
 
-<h2 style="margin-top: 10px;">Occupancy Statistics</h2>
+        <!-- ======================== -->
+        <!-- LOGS CARD (TOP) -->
+        <!-- ======================== -->
+        <div class="usage-card">
+            <div class="usage-card-header">
+                <h3>System Activity Logs</h3>
+                <span class="close-button" onclick="closeLogsModal()">&times;</span>
+            </div>
+
+            <div id="logs-list" class="usage-card-body">
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <!-- ======================== -->
+        <!-- STATISTICS CARD (BOTTOM) -->
+        <!-- ======================== -->
+        <div class="usage-card" style="margin-top:20px;">
+            <div class="usage-card-header">
+                <h3>Occupancy Statistics</h3>
+            </div>
+
+            <!-- Tabs -->
+            <div class="stats-tabs">
+                <button class="stats-tab active" data-range="daily">Daily</button>
+                <button class="stats-tab" data-range="weekly">Weekly</button>
+                <button class="stats-tab" data-range="monthly">Monthly</button>
+            </div>
+
+            <!-- Chart -->
+            <div class="chart-box">
+                <canvas id="usageStatsChart"></canvas>
+            </div>
+
+            <!-- Summary Table -->
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th>Peak Day</th>
+                        <th>Slow Day</th>
+                        <th>Average Occupancy</th>
+                    </tr>
+                </thead>
+                <tbody id="usage-stats-summary"></tbody>
+            </table>
+        </div>
+
+    </div>
+  </div>
+
 
 <!-- Stats Tabs -->
 <div class="stats-tabs" style="margin-top: 10px; display:flex; gap:10px;">

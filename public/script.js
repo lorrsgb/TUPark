@@ -53,44 +53,38 @@ btn.addEventListener("click", (e) => {
 // ==============================
 // LOAD OCCUPANCY STATISTICS
 // ==============================
+// =====================================
+// LOAD USAGE STATISTICS
+// =====================================
 async function loadUsageStatistics(range = "daily") {
     try {
         const response = await fetch(`/api/stats?range=${range}`);
         const data = await response.json();
 
-        // Chart Canvas
-        let canvas = document.getElementById("usageStatsChart");
+        const canvas = document.getElementById("usageStatsChart");
         if (!canvas) return;
 
         const ctx = canvas.getContext("2d");
 
-        // Destroy old chart if it exists
         if (window.usageChart) window.usageChart.destroy();
 
-        // Create new Chart
         window.usageChart = new Chart(ctx, {
             type: "line",
             data: {
                 labels: data.labels,
-                datasets: [
-                    {
-                        label: `${range.charAt(0).toUpperCase() + range.slice(1)} Occupancy`,
-                        data: data.values,
-                        borderWidth: 3,
-                        tension: 0.3
-                    }
-                ]
+                datasets: [{
+                    label: `${range} Occupancy`,
+                    data: data.values,
+                    borderWidth: 3,
+                    tension: 0.3
+                }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true }
-                }
+                maintainAspectRatio: false
             }
         });
 
-        // Fill Summary Table
         document.getElementById("usage-stats-summary").innerHTML = `
             <tr>
                 <td>${range}</td>
@@ -100,19 +94,22 @@ async function loadUsageStatistics(range = "daily") {
             </tr>
         `;
     } catch (err) {
-        console.error("Stats loading error:", err);
+        console.error("Stats Error:", err);
     }
 }
 
-// ==============================
-// HANDLE TAB CLICKS
-// ==============================
+// Default load when modal opens
+function openLogsModal() {
+    logsModal.classList.add('show-modal');
+    fetchLogs();
+    loadUsageStatistics("daily");  // load stats
+}
+
+// Stats tab switching
 document.addEventListener("click", (e) => {
     if (e.target.classList.contains("stats-tab")) {
-        document.querySelectorAll(".stats-tab").forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(".stats-tab").forEach(tab => tab.classList.remove("active"));
         e.target.classList.add("active");
-
-        const range = e.target.getAttribute("data-range");
-        loadUsageStatistics(range);
+        loadUsageStatistics(e.target.dataset.range);
     }
 });
