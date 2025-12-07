@@ -244,26 +244,27 @@ app.post('/api/update-spot', async (req, res) => {
 
 // --- USER REPORT SUBMISSION ---
 app.post('/api/submit-report', async (req, res) => { 
-    // MODIFIED: Destructure slot_id from the request body
     const { category, description, name, plate, slot_id } = req.body; 
     
-    // MODIFIED: Check for all required fields including slot_id
+    // Check for all required fields including slot_id
     if (!category || !description || !name || !plate || !slot_id) return res.json({ success: false, message: "All fields are required." });
 
     try {
-        // NEW: VERIFY PLATE AND SLOT_ID MATCH IN DATABASE
+        // VERIFY PLATE AND SLOT_ID MATCH IN DATABASE (Validation is correct)
         const checkMatchSql = 'SELECT * FROM slots WHERE plate_number = $1 AND slot_number = $2 AND status = $3';
-        // Use slot_id and plate from the request to check for a match
         const checkResult = await pool.query(checkMatchSql, [plate, slot_id, 'occupied']); 
 
         if (checkResult.rows.length === 0) {
-            // Error message indicates which check failed
             return res.json({ success: false, message: `Report Failed: Vehicle ${plate} at slot ${slot_id} is not currently recorded as occupied in our system.` });
         }
 
-        // Plate/Slot Match is successful, proceed with inserting the report
-        const insertSql = 'INSERT INTO problem_reports (category, description, reporter_name, plate_number) VALUES ($1, $2, $3, $4)';
-        await pool.query(insertSql, [category, description, name, plate]);
+        // === FIX APPLIED HERE ===
+        // 1. Added 'slot_number' to the column list.
+        // 2. Added '$5' to the VALUES list.
+        const insertSql = 'INSERT INTO problem_reports (category, description, reporter_name, plate_number, slot_number) VALUES ($1, $2, $3, $4, $5)';
+        // 3. Passed slot_id as the fifth parameter in the query array.
+        await pool.query(insertSql, [category, description, name, plate, slot_id]);
+        
         res.json({ success: true });
     } catch (err) {
         console.error("Submit Report Error:", err);
@@ -274,6 +275,7 @@ app.post('/api/submit-report', async (req, res) => {
 // --- ADMIN REPORT ACTIONS ---
 app.get('/api/admin/reports', checkAuth, async (req, res) => { 
     try {
+        // SELECT * will now include the new slot_number column
         const result = await pool.query('SELECT * FROM problem_reports ORDER BY report_date DESC');
         res.json(result.rows);
     } catch (err) {
