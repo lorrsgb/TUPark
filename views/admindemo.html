@@ -7,8 +7,45 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<link rel="stylesheet" href="/adminstyle.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<link rel="stylesheet" href="adminstyle.css" />
+
+<style>
+/* Stats Modal Floating Box */
+#usage-modal .modal-content {
+    max-width: 750px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.stats-tabs button {
+    padding: 8px 16px;
+    background: #333;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.stats-tabs button.active {
+    background: #007bff;
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.stats-table th, .stats-table td {
+    padding: 10px;
+    border: 1px solid #555;
+}
+</style>
+
 </head>
 <body>
  
@@ -130,87 +167,50 @@
     </div>
   </div>
 
-  <div id="logs-modal" class="modal">
-    <div class="modal-content usage-modal">
+  <div id="usage-modal" class="modal">
+<div class="modal-content">
 
-        <!-- ======================== -->
-        <!-- LOGS CARD (TOP) -->
-        <!-- ======================== -->
-        <div class="usage-card">
-            <div class="usage-card-header">
-                <h3>System Activity Logs</h3>
-                <span class="close-button" onclick="closeLogsModal()">&times;</span>
-            </div>
-
-            <div id="logs-list" class="usage-card-body">
-                <p>Loading...</p>
-            </div>
-        </div>
-
-        <!-- ======================== -->
-        <!-- STATISTICS CARD (BOTTOM) -->
-        <!-- ======================== -->
-        <div class="usage-card" style="margin-top:20px;">
-            <div class="usage-card-header">
-                <h3>Occupancy Statistics</h3>
-            </div>
-
-            <!-- Tabs -->
-            <div class="stats-tabs">
-                <button class="stats-tab active" data-range="daily">Daily</button>
-                <button class="stats-tab" data-range="weekly">Weekly</button>
-                <button class="stats-tab" data-range="monthly">Monthly</button>
-            </div>
-
-            <!-- Chart -->
-            <div class="chart-box">
-                <canvas id="usageStatsChart"></canvas>
-            </div>
-
-            <!-- Summary Table -->
-            <table class="stats-table">
-                <thead>
-                    <tr>
-                        <th>Period</th>
-                        <th>Peak Day</th>
-                        <th>Slow Day</th>
-                        <th>Average Occupancy</th>
-                    </tr>
-                </thead>
-                <tbody id="usage-stats-summary"></tbody>
-            </table>
-        </div>
-
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>Usage & Occupancy Statistics</h3>
+        <span class="close-button" onclick="closeUsageModal()">&times;</span>
     </div>
-  </div>
 
+    <!-- Tabs -->
+    <div class="stats-tabs" style="margin-top:10px; display:flex; gap:10px;">
+        <button class="stats-tab active" data-range="daily">Daily</button>
+        <button class="stats-tab" data-range="weekly">Weekly</button>
+        <button class="stats-tab" data-range="monthly">Monthly</button>
+    </div>
 
-<!-- Stats Tabs -->
-<div class="stats-tabs" style="margin-top: 10px; display:flex; gap:10px;">
-    <button class="stats-tab active" data-range="daily">Daily</button>
-    <button class="stats-tab" data-range="weekly">Weekly</button>
-    <button class="stats-tab" data-range="monthly">Monthly</button>
+    <!-- Chart -->
+    <div style="
+        background:rgba(255,255,255,0.05);
+        padding:15px;
+        border-radius:10px;
+        height:260px;
+        margin-top:15px;
+        flex-shrink:0;
+    ">
+        <canvas id="usageStatsChart"></canvas>
+    </div>
+
+    <!-- Summary Table -->
+    <div style="overflow-y:auto; margin-top:15px; flex:1;">
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>Period</th>
+                    <th>Peak Day</th>
+                    <th>Slow Day</th>
+                    <th>Average Occupancy</th>
+                </tr>
+            </thead>
+            <tbody id="usage-stats-summary"></tbody>
+        </table>
+    </div>
+
 </div>
-
-<!-- Chart -->
-<div style="background: rgba(255,255,255,0.05); padding:15px; border-radius:10px; height:280px; margin-top:15px;">
-    <canvas id="usageStatsChart"></canvas>
 </div>
-
-<!-- Summary Table -->
-<table class="stats-table" style="margin-top:20px; width:100%;">
-    <thead>
-        <tr>
-            <th>Period</th>
-            <th>Peak Day</th>
-            <th>Slow Day</th>
-            <th>Average Occupancy</th>
-        </tr>
-    </thead>
-    <tbody id="usage-stats-summary"></tbody>
-</table>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
 // ==========================================
@@ -226,6 +226,20 @@ const vehicleTypeSelect = document.getElementById('vehicle-type');
 const modal = document.getElementById('spot-modal');
 const modalTitle = document.getElementById('modal-title');
 const modalBody = document.getElementById('modal-body');
+const usageModal = document.getElementById("usage-modal");
+
+function openUsageModal() {
+    usageModal.classList.add("show-modal");
+    loadUsageStatistics("daily");
+}
+
+function closeUsageModal() {
+    usageModal.classList.remove("show-modal");
+}
+
+window.addEventListener("click", e => {
+    if (e.target === usageModal) closeUsageModal();
+});
 
 const mapImages = {
   none: '2.png',

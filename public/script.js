@@ -56,24 +56,22 @@ btn.addEventListener("click", (e) => {
 // =====================================
 // LOAD USAGE STATISTICS
 // =====================================
-async function loadUsageStatistics(range = "daily") {
+async function loadUsageStatistics(range) {
     try {
         const response = await fetch(`/api/stats?range=${range}`);
         const data = await response.json();
 
         const canvas = document.getElementById("usageStatsChart");
-        if (!canvas) return;
-
         const ctx = canvas.getContext("2d");
 
-        if (window.usageChart) window.usageChart.destroy();
+        if (usageChart) usageChart.destroy();
 
-        window.usageChart = new Chart(ctx, {
+        usageChart = new Chart(ctx, {
             type: "line",
             data: {
                 labels: data.labels,
                 datasets: [{
-                    label: `${range} Occupancy`,
+                    label: `${range.toUpperCase()} Occupancy`,
                     data: data.values,
                     borderWidth: 3,
                     tension: 0.3
@@ -81,7 +79,10 @@ async function loadUsageStatistics(range = "daily") {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                }
             }
         });
 
@@ -93,23 +94,18 @@ async function loadUsageStatistics(range = "daily") {
                 <td>${data.average}</td>
             </tr>
         `;
+
     } catch (err) {
-        console.error("Stats Error:", err);
+        console.error("Error loading stats:", err);
     }
 }
 
-// Default load when modal opens
-function openLogsModal() {
-    logsModal.classList.add('show-modal');
-    fetchLogs();
-    loadUsageStatistics("daily");  // load stats
-}
+/* TAB CLICK HANDLERS */
+document.addEventListener("click", e => {
+    if (!e.target.classList.contains("stats-tab")) return;
 
-// Stats tab switching
-document.addEventListener("click", (e) => {
-    if (e.target.classList.contains("stats-tab")) {
-        document.querySelectorAll(".stats-tab").forEach(tab => tab.classList.remove("active"));
-        e.target.classList.add("active");
-        loadUsageStatistics(e.target.dataset.range);
-    }
+    document.querySelectorAll(".stats-tab").forEach(b => b.classList.remove("active"));
+    e.target.classList.add("active");
+
+    loadUsageStatistics(e.target.dataset.range);
 });
