@@ -1,42 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parking Availability</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parking Availability</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/user-dashboard.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/user-dashboard.css" />
+
+    <style>
+        body.home-page {
+            /* Ensures the content area takes up the full viewport height */
+            min-height: 100vh;
+            /* Using flexbox here to center the main .Front-content block */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center horizontally */
+            justify-content: center; /* Center vertically (if space allows) */
+            padding-top: 60px; /* Add padding to prevent navbar overlap */
+        }
+        
+        .Front-content {
+            /* Remove absolute positioning if it exists in user-dashboard.css */
+            /* Ensure text is centered within the content block */
+            text-align: center;
+            /* Give it a Z-index to ensure it sits above the overlay/car image */
+            position: relative; 
+            z-index: 10;
+            max-width: 90%; /* Prevent content from stretching too far on large screens */
+            margin-top: -100px; /* Pull it up a bit to account for visual weight */
+        }
+
+        .Front-content h1 {
+            font-size: 4rem; /* Example size adjustment */
+            margin-bottom: 0.2em;
+        }
+
+        .Front-content p {
+            /* The specific line you asked to center */
+            margin-bottom: 1.5em; 
+            font-size: 1.2rem; /* Slightly larger for emphasis */
+            font-weight: 500;
+        }
+
+        .demo-btn {
+            /* Example styling for the button, adjust as needed */
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            background-color: #007bff; /* Example color */
+            color: white;
+            transition: background 0.3s;
+        }
+    </style>
 </head>
 
 <body class="home-page">
 
-  <header class="navbar">
-    <div class="logo">
-      <span>TUPark</span>
-      <img src="/image/TUPARK.png" alt="Logo" class="logo-img">
-    </div> 
-    <nav>
-      <ul>
-        <li><a href="/home">Home</a></li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/features">Features</a></li>
-        <li><a href="/contact">Contact</a></li>
-        <li><a href="/report-problem">Report</a></li>
-      </ul>
-    </nav>
-  </header>
+  <header class="navbar">
+    <div class="logo">
+      <span>TUPark</span>
+      <img src="/image/TUPARK.png" alt="Logo" class="logo-img">
+    </div> 
+    <nav>
+      <ul>
+        <li><a href="/home">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/features">Features</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/report-problem">Report</a></li>
+      </ul>
+    </nav>
+  </header>
 
-  <div class="overlay"></div>
-  <div class="Front-content">
-    <h1>TUP<span>ark</span></h1>
-    <p>Parking Availability monitoring map at the Technological University of the Philippines - Manila</p>
-    <button class="demo-btn" id="demo-btn">View Demo</button>
-  </div>
+  <div class="overlay"></div>
+  <div class="Front-content">
+    <h1>TUP<span>ark</span></h1>
+    <p>Parking Availability monitoring map at the **Technological University of the Philippines - Manila**</p>
+    <button class="demo-btn" id="demo-btn">View Demo</button>
+  </div>
 
-  <img src="/image/car-top.png" alt="Car" class="car" id="car">
-  
-  <script src="/user-script.js"></script>
+  <img src="/image/car-top.png" alt="Car" class="car" id="car">
+  
+  <script src="/user-script.js"></script>
 
 </body>
 </html>
