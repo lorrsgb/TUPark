@@ -8,16 +8,17 @@
 
 /* Base Body Style for Background and Initial Setup */
 body.home-page {
-  /* Removed: content: "" and position: center; which were invalid CSS */
   position: relative;
   background: url('bg-home.png') center/cover no-repeat; 
   z-index: 0;
   height: 100vh;
-  /* Added display properties to center the content block */
+  width: 100vw;
+  /* REVERTED: Changed alignment to place content on the side */
   display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Removed fixed padding-left as we are centering */
+  align-items: center; /* Center vertically */
+  justify-content: flex-start; /* Move content to the left edge */
+  padding-left: 15vw; /* ADDED: Padding to push content away from the edge */
+  padding-top: 80px; /* Keep padding-top to account for the fixed navbar height */
   color: white;
   overflow: hidden; /* prevent scrolling issues */
 }
@@ -81,35 +82,46 @@ nav ul li a:hover {
 .Front-content {
   position: relative;
   z-index: 2;
-  text-align: center; /* Center text/form block */
+  /* MODIFIED: Left-align the overall text block for a professional card look */
+  text-align: left; 
   /* Adjusted max-width to control the overall width of the form elements */
-  max-width: 400px; /* SHORTER WIDTH for the whole content block */
+  max-width: 400px; 
   padding: 40px 20px;
-  background: rgba(0, 0, 0, 0.7); /* Optional: dark background for form contrast */
+  background: rgba(0, 0, 0, 0.7); 
   border-radius: 10px;
+  /* Ensure the block is aligned to the left side when flex-start is used above */
+  margin: 0;
 }
 
-/* 1. ADMIN LOG IN TEXT ENLARGED */
+/* Re-align card contents back to center *within the card* for better layout */
+.Front-content h2,
+.Front-content p,
+.Front-content .login-btn {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .Front-content h2 {
-  font-size: 3rem; /* Made the h2 bigger than the default */
+  font-size: 3rem; 
   font-weight: 800;
   line-height: 1.2;
-  color: #007bff; /* Use blue for emphasis */
+  color: #007bff; 
   margin-bottom: 5px; 
 }
 
-/* 2. SUB-TEXT PROPORTION FIXED */
+/* Sub-text proportion fixed */
 .Front-content p {
   font-size: 1rem;
-  line-height: 1.4; /* Ensure it fits nicely on two lines */
+  line-height: 1.4; 
   color: #ddd;
-  margin: 0 0 25px 0; /* Adjusted top/bottom margin */
+  margin: 0 0 25px 0; 
 }
 
 /* Form Styles */
 .Front-content form {
     /* Use max-width here to ensure the form itself doesn't stretch the container */
-    max-width: 300px; /* Further restricts input width */
+    max-width: 300px; 
     margin: 0 auto; /* Center the form block within Front-content */
 }
 
@@ -118,12 +130,12 @@ label {
   margin-bottom: 5px;
   font-size: 0.9rem;
   color: #ddd;
-  text-align: left; /* Keep labels left-aligned within the form */
+  text-align: left; 
 }
 
-/* 3. SHORTER INPUT BARS */
+/* Shorter Input Bars */
 input {
-  width: 100%; /* Stays 100% of the form's max-width (300px) */
+  width: 100%; 
   padding: 10px;
   margin-bottom: 20px;
   border: none;
@@ -143,7 +155,7 @@ input {
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
-  margin-top: 25px; /* Added spacing above the button */
+  margin-top: 25px; 
 }
 
 .login-btn:hover {
