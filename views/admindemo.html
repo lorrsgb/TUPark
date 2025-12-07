@@ -110,6 +110,36 @@
         </div>
       </div>
 
+<section class="stats-section">
+  <h2>Occupancy Statistics</h2>
+
+  <div class="stats-tabs">
+    <button class="tab-btn active" data-target="daily">Daily</button>
+    <button class="tab-btn" data-target="weekly">Weekly</button>
+    <button class="tab-btn" data-target="monthly">Monthly</button>
+  </div>
+
+  <div class="stats-content">
+      
+    <!-- Daily Chart -->
+    <div class="stat-panel" id="daily-panel">
+      <canvas id="dailyChart"></canvas>
+    </div>
+
+    <!-- Weekly Chart -->
+    <div class="stat-panel hidden" id="weekly-panel">
+      <canvas id="weeklyChart"></canvas>
+    </div>
+
+    <!-- Monthly Chart -->
+    <div class="stat-panel hidden" id="monthly-panel">
+      <canvas id="monthlyChart"></canvas>
+    </div>
+
+  </div>
+</section>
+
+
       <div class="map-wrapper">
       <div class="map-area">
         <div class="map-container">
@@ -141,6 +171,8 @@
       </div>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
 // ==========================================
@@ -629,6 +661,46 @@ setInterval(() => {
         });
     }
 }, 1000);
+
+const ctx = document.getElementById("occupancyChart").getContext("2d");
+
+let occupancyChart = new Chart(ctx, {
+    type: "line",
+    data: {
+        labels: [],
+        datasets: [{
+            label: "Occupancy",
+            data: [],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+async function loadStats(range) {
+    const res = await fetch(`/stats?range=${range}`);
+    const data = await res.json();
+
+    occupancyChart.data.labels = data.labels;
+    occupancyChart.data.datasets[0].data = data.values;
+    occupancyChart.update();
+}
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        document.querySelector(".tab-btn.active").classList.remove("active");
+        btn.classList.add("active");
+        loadStats(btn.dataset.range);
+    });
+});
+
+// Load daily by default
+loadStats("daily");
 
 </script>
 </body>
