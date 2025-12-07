@@ -5,16 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Report an Issue</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="/user-report.css" />
+  <link rel="stylesheet" href="/user-report.css" /> <!-- Assuming path is fixed -->
 </head>
 <body>
 
+  <!-- Navigation Bar (Using correct routes from history) -->
   <header class="navbar">
-    <div class="logo"> 
-      <span>TUPark</span>
-      <img src="/image/TUPARK.png" alt="Logo" class="logo-img">
-    </div> 
+    <div class="logo"> <span>TUPark</span><img src="/image/TUPARK.png" alt="Logo" class="logo-img"></div> 
     <nav>
       <ul>
         <li><a href="/home">Home</a></li>
@@ -26,10 +23,12 @@
     </nav>
   </header>
 
+  <!-- REPORT FORM -->
   <main class="report-container">
     <h1>Report an Issue Form</h1>
     <p class="desc">Describe the problem you’re experiencing</p>
 
+    <!-- FORM NOW HANDLED BY JAVASCRIPT -->
     <form id="reportForm">
       
       <textarea id="description" name="problem-description" rows="6" placeholder="Write your issue here..." required></textarea>
@@ -51,15 +50,26 @@
         </div>
       </div>
 
+      <!-- MODIFIED: Second Row for Plate and Slot ID -->
       <div class="form-row">
+        
+        <!-- NEW: Slot ID Field -->
         <div class="form-group">
-          <label for="name">Name:</label>
-          <input type="text" id="name" name="name" placeholder="Enter your name" required />
+          <label for="slot-id">Slot ID:</label>
+          <input type="text" id="slot-id" name="slot-id" placeholder="e.g., CLA5, LIB1" required />
         </div>
-
+        
+        <!-- EXISTING: Plate Number Field -->
         <div class="form-group">
           <label for="plate">Vehicle Plate Number:</label>
-          <input type="text" id="plate" name="admin-id" placeholder="Enter Vehicle Plate Number:" required />
+          <input type="text" id="plate" name="plate" placeholder="Enter Vehicle Plate Number:" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="min-width: 100%;">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" placeholder="Enter your name" required />
         </div>
       </div>
 
@@ -70,19 +80,22 @@
   </main>
 
   <script>
+    // --- UPDATED CLIENT-SIDE JS TO GET SLOT ID ---
     document.getElementById('reportForm').addEventListener('submit', async (e) => {
       e.preventDefault(); // Stop page from reloading
 
-      // 1. Gather Data
+      // 1. Gather Data (NOW includes slot_id)
       const data = {
         category: document.getElementById('category').value,
         description: document.getElementById('description').value,
         name: document.getElementById('name').value,
-        plate: document.getElementById('plate').value
+        // NEW INPUTS:
+        slot_id: document.getElementById('slot-id').value.trim().toUpperCase(),
+        plate: document.getElementById('plate').value.trim().toUpperCase()
       };
 
       try {
-        // 2. Send to Server
+        // 2. Send to Server (Backend will do the complex verification)
         const response = await fetch('/api/submit-report', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -94,13 +107,14 @@
         // 3. Handle Result
         if (result.success) {
           alert("Report Submitted Successfully!");
-          window.location.href = "/home"; // Redirect to home
+          window.location.href = "/home"; 
         } else {
-          alert("Error submitting report. Please try again.");
+          // If the backend validation fails (e.g., Plate/Slot mismatch)
+          alert(result.message); 
         }
       } catch (err) {
         console.error(err);
-        alert("System Error. Check console.");
+        alert("System Error. Please try again.");
       }
     });
   </script>

@@ -244,18 +244,24 @@ app.post('/api/update-spot', async (req, res) => {
 
 // --- USER REPORT SUBMISSION ---
 app.post('/api/submit-report', async (req, res) => { 
-    const { category, description, name, plate } = req.body;
-    if (!category || !description || !name || !plate) return res.json({ success: false, message: "All fields are required." });
+    // MODIFIED: Destructure slot_id from the request body
+    const { category, description, name, plate, slot_id } = req.body; 
+    
+    // MODIFIED: Check for all required fields including slot_id
+    if (!category || !description || !name || !plate || !slot_id) return res.json({ success: false, message: "All fields are required." });
 
     try {
-        // VERIFY PLATE EXISTS IN DATABASE
-        const checkPlateSql = 'SELECT * FROM slots WHERE plate_number = $1 AND status = $2';
-        const checkResult = await pool.query(checkPlateSql, [plate, 'occupied']);
+        // NEW: VERIFY PLATE AND SLOT_ID MATCH IN DATABASE
+        const checkMatchSql = 'SELECT * FROM slots WHERE plate_number = $1 AND slot_number = $2 AND status = $3';
+        // Use slot_id and plate from the request to check for a match
+        const checkResult = await pool.query(checkMatchSql, [plate, slot_id, 'occupied']); 
 
         if (checkResult.rows.length === 0) {
-            return res.json({ success: false, message: `Report Failed: Vehicle ${plate} is not currently parked in our facility.` });
+            // Error message indicates which check failed
+            return res.json({ success: false, message: `Report Failed: Vehicle ${plate} at slot ${slot_id} is not currently recorded as occupied in our system.` });
         }
 
+        // Plate/Slot Match is successful, proceed with inserting the report
         const insertSql = 'INSERT INTO problem_reports (category, description, reporter_name, plate_number) VALUES ($1, $2, $3, $4)';
         await pool.query(insertSql, [category, description, name, plate]);
         res.json({ success: true });
