@@ -186,11 +186,9 @@ body.fade-in {
   object-fit: contain;
 }
 
-.TUP-img {
-  width: 40px;   /* adjust image size */
-  height: 40px;  /* keep proportional */
-  margin-right: 10px; /* space between image and text */
-  object-fit: contain;
+img[src*="TUPLogo.png"] {
+    width: 200px;
+    height: auto;
 }
 
 
