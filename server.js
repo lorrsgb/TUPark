@@ -1,12 +1,21 @@
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-const pgSession = require('connect-pg-simple')(session); // NEW: Production Session Store
-const { Pool } = require('pg'); // PostgreSQL client
+const pgSession = require('connect-pg-simple')(session); 
+const { Pool } = require('pg'); 
 const bcrypt = require('bcrypt'); 
+const rateLimit = require('express-rate-limit'); 
+const passport = require('passport'); // NEW: For Google OAuth
+const GoogleStrategy = require('passport-google-oauth20').Strategy; // NEW: Google Strategy
+
 const app = express();
 const PORT = process.env.PORT || 3000; 
-const rateLimit = require('express-rate-limit'); 
+
+// --- GOOGLE OAUTH CONFIGURATION ---
+// IMPORTANT: Use Environment Variables in Vercel for these values.
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'YOUR_CLIENT_ID'; 
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || 'YOUR_CLIENT_SECRET'; 
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || 'https://tupark.vercel.app/auth/google/callback'; 
 
 // Define the Limiter
 const limiter = rateLimit({
@@ -20,40 +29,33 @@ app.use(limiter);
 // ==========================================
 // 1. APP CONFIGURATION
 // ==========================================
-// NEW: Required for Vercel/Render. Allows express-rate-limit to correctly read the user's IP address.
 app.set('trust proxy', 1); 
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-const loginAttempts = {};
-
 // ==========================================
-// 2. DATABASE CONNECTION (PostgreSQL/Supabase)
+// 2. DATABASE CONNECTION
 // ==========================================
 const pool = new Pool({
-    // Reads credentials from Environment Variables (Vercel/Render) or uses fallbacks.
     user: process.env.DB_USER || 'postgres', 
     host: process.env.DB_HOST || 'localhost',
     database: process.env.DB_NAME || 'postgres', 
     password: process.env.DB_PASSWORD || 'your_local_password_here', 
     port: process.env.DB_PORT || 5432, 
-    // FINAL FIX: Hardened SSL configuration for deployment platforms
     ssl: process.env.DB_HOST ? { 
         rejectUnauthorized: false
     } : false
 });
 
-// Test connection
 pool.query('SELECT NOW()', (err, res) => {
     if (err) console.error('Error connecting to PostgreSQL:', err);
     else console.log('Connected to PostgreSQL Database!');
 });
 
-// --- SESSION CONFIGURATION (PRODUCTION SAFE) ---
+// --- SESSION CONFIGURATION ---
 app.use(session({
-    // Store sessions in the Postgres database, fixing the memory leak error.
     store: new pgSession({
         pool: pool, 
         tableName: 'user_sessions' 
@@ -64,15 +66,66 @@ app.use(session({
     rolling: true, 
     cookie: { 
         maxAge: 15 * 60 * 1000, 
-        secure: process.env.NODE_ENV === 'production', // Secure cookies are required when hosted (Vercel)
+        secure: process.env.NODE_ENV === 'production', 
         httpOnly: true,
         sameSite: 'lax'
     }
 }));
 
+// ==========================================
+// 3. PASSPORT.JS CONFIGURATION
+// ==========================================
+
+// Serialize: Store 'username' (Admin ID for logs) in the session
+passport.serializeUser((user, done) => {
+    done(null, user.username); 
+});
+
+// Deserialize: Retrieve user object using the 'username' from the session
+passport.deserializeUser(async (username, done) => {
+    try {
+        const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        const user = result.rows[0];
+        done(null, user); 
+    } catch (err) {
+        done(err, null);
+    }
+});
+
+// Google Strategy: Check if the returned Google email is authorized
+passport.use(new GoogleStrategy({
+    clientID: GOOGLE_CLIENT_ID,
+    clientSecret: GOOGLE_CLIENT_SECRET,
+    callbackURL: GOOGLE_CALLBACK_URL
+},
+async (accessToken, refreshToken, profile, done) => {
+    const googleEmail = profile.emails[0].value; 
+
+    try {
+        // Find user by authorized Gmail address (requires 'email' column in users table)
+        const result = await pool.query('SELECT * FROM users WHERE email = $1', [googleEmail]);
+        const user = result.rows[0];
+
+        if (!user) {
+            // User is NOT authorized (email not found in DB)
+            return done(null, false, { message: 'This Google account is not authorized for TUPark Admin access.' });
+        }
+        
+        // Success: Google handled 2FA, and the email is authorized.
+        // The user object must contain the 'username' field for serialization.
+        return done(null, user); 
+    } catch (err) {
+        return done(err, null);
+    }
+}));
+
+// Initialize Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
 
 // ==========================================
-// 3. ACTIVITY LOGGING HELPER (POSTGRESQL SYNTAX)
+// 4. ACTIVITY LOGGING HELPER
 // ==========================================
 async function logActivity(username, action, details, req) {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -94,18 +147,21 @@ async function logActivity(username, action, details, req) {
 }
 
 // ==========================================
-// 4. SECURITY MIDDLEWARE
+// 5. SECURITY MIDDLEWARE
 // ==========================================
 function checkAuth(req, res, next) {
-    if (req.session.isLoggedIn) {
+    // Check if Passport has successfully deserialized a user (Is authenticated)
+    if (req.isAuthenticated()) {
         next(); 
     } else {
+        // Store intended URL and redirect to login page
+        req.session.returnTo = req.originalUrl;
         res.redirect('/login-page'); 
     }
 }
 
 // ==========================================
-// 5. PAGE ROUTES
+// 6. PAGE ROUTES
 // ==========================================
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'views', 'user', 'landing.html')));
 app.get('/home', (req, res) => res.sendFile(path.join(__dirname, 'views', 'user', 'dashboard.html')));
@@ -120,151 +176,68 @@ app.get('/admin/reports', checkAuth, (req, res) => res.sendFile(path.join(__dirn
 
 
 // ==========================================
-// 6. API ROUTES (POSTGRESQL REWRITE)
+// 7. AUTHENTICATION & API ROUTES
 // ==========================================
-// ... (Lines 1 to 142 remain the same) ...
 
-// ==========================================
-// 6. API ROUTES (POSTGRESQL REWRITE)
-// ==========================================
+// --- GOOGLE OAUTH ROUTES (NEW LOGIN MECHANISM) ---
+
+// Route 1: Initiates the Google login process (sends user to Google's site)
+app.get('/auth/google',
+    passport.authenticate('google', { 
+        scope: ['email', 'profile'] 
+    })
+);
+
+// Route 2: Receives the callback from Google (verification check)
+app.get('/auth/google/callback',
+    passport.authenticate('google', { 
+        failureRedirect: '/login-page' // Redirect to login on failure
+    }),
+    async (req, res) => {
+        // Success! Log activity using the username retrieved from the DB
+        await logActivity(req.user.username, 'LOGIN_OAUTH', 'Admin logged in via Google OAuth 2.0', req);
+        
+        // Redirect to the stored URL or /admin
+        const redirectUrl = req.session.returnTo || '/admin';
+        delete req.session.returnTo; 
+        res.redirect(redirectUrl); 
+    }
+);
+
 
 // --- LOGOUT ROUTE ---
-app.get('/logout', (req, res) => {
-    if (req.session.username) {
-        logActivity(req.session.username, 'LOGOUT', 'Admin logged out manually', req);
+app.get('/logout', (req, res, next) => {
+    if (req.user && req.user.username) {
+        logActivity(req.user.username, 'LOGOUT', 'Admin logged out manually', req);
     }
-    req.session.destroy((err) => {
-        if (err) console.error("Logout Error:", err);
-        res.redirect('/login-page');
+    // Passport logout functionality
+    req.logout((err) => {
+        if (err) { return next(err); }
+        req.session.destroy(() => {
+            res.redirect('/login-page');
+        });
     });
 });
 
-app.post('/api/session-timeout', (req, res) => {
-    if (req.session.username) {
-        logActivity(req.session.username, 'SESSION_TIMEOUT', 'System auto-logout due to inactivity', req);
+app.post('/api/session-timeout', (req, res, next) => {
+    if (req.user && req.user.username) {
+        logActivity(req.user.username, 'SESSION_TIMEOUT', 'System auto-logout due to inactivity', req);
     }
-    req.session.destroy(() => { res.json({ success: true }); });
+    // Use Passport logout before destroying session
+    req.logout((err) => {
+        if (err) { return next(err); }
+        req.session.destroy(() => { 
+            res.json({ success: true }); 
+        });
+    });
 });
 
-// --- NEW API: DAILY OCCUPANCY TRENDS (Last 24 hours/grouped by hour) ---
-app.get('/api/charts/daily', checkAuth, async (req, res) => {
-    const sql = `
-        SELECT 
-            TO_CHAR(date_trunc('hour', timestamp), 'HH24') AS hour_label,
-            COUNT(*) FILTER (WHERE action = 'OCCUPY_SPOT') AS occupied_count,
-            COUNT(*) FILTER (WHERE action = 'RELEASE_SPOT') AS released_count
-        FROM activity_logs
-        WHERE timestamp >= NOW() - INTERVAL '24 hours'
-        GROUP BY 1
-        ORDER BY 1;
-    `;
-    try {
-        const result = await pool.query(sql);
-        res.json(result.rows);
-    } catch (err) {
-        console.error("Daily Occupancy Error:", err);
-        res.status(500).json({ message: "Failed to fetch daily chart data." });
-    }
-});
+// --- REMOVED: app.post('/login', ...) manual login logic is no longer needed ---
 
-// --- NEW API: WEEKLY OCCUPANCY TRENDS (Last 7 days/grouped by day) ---
-app.get('/api/charts/weekly', checkAuth, async (req, res) => {
-    // Calculates the total unique occupancy events per day for the last 7 days.
-    const sql = `
-        SELECT 
-            TO_CHAR(date_trunc('day', timestamp), 'Dy') AS day_label,
-            COUNT(DISTINCT split_part(details, ' at ', 2)) AS occupied_slots_count -- Extracts slot_id from log details
-        FROM activity_logs
-        WHERE timestamp >= NOW() - INTERVAL '7 days' AND action = 'OCCUPY_SPOT'
-        GROUP BY 1
-        ORDER BY MIN(timestamp);
-    `;
-    try {
-        const result = await pool.query(sql);
-        res.json(result.rows);
-    } catch (err) {
-        console.error("Weekly Occupancy Error:", err);
-        res.status(500).json({ message: "Failed to fetch weekly chart data." });
-    }
-});
-
-// --- NEW API: MONTHLY OCCUPANCY TRENDS (Last 12 months) ---
-app.get('/api/charts/monthly', checkAuth, async (req, res) => {
-    // Calculates the average unique occupied slots per month over the last 12 months
-    const sql = `
-        WITH MonthlyOccupancy AS (
-            SELECT 
-                DATE_TRUNC('day', timestamp) AS event_day,
-                COUNT(DISTINCT split_part(details, ' at ', 2)) AS occupied_slots_today 
-            FROM activity_logs
-            WHERE action = 'OCCUPY_SPOT' AND timestamp >= NOW() - INTERVAL '12 months'
-            GROUP BY 1
-        )
-        SELECT 
-            TO_CHAR(DATE_TRUNC('month', event_day), 'Mon') AS month_label,
-            CEIL(AVG(occupied_slots_today)) AS average_occupied_slots
-        FROM MonthlyOccupancy
-        GROUP BY 1
-        ORDER BY MIN(event_day);
-    `;
-    try {
-        const result = await pool.query(sql);
-        res.json(result.rows);
-    } catch (err) {
-        console.error("Monthly Occupancy Error:", err);
-        res.status(500).json({ message: "Failed to fetch monthly chart data." });
-    }
-});
-
-// --- LOGIN LOGIC ---
-app.post('/login', async (req, res) => { 
-// ... (Login logic remains the same) ...
-    const { adminId, password } = req.body;
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const now = Date.now();
-
-    if (loginAttempts[ip] && loginAttempts[ip].lockUntil > now) {
-        const timeLeft = Math.ceil((loginAttempts[ip].lockUntil - now) / 1000);
-        return res.json({ success: false, message: `Account Locked. Try again in ${Math.floor(timeLeft / 60)}m ${timeLeft % 60}s.` });
-    }
-
-    try {
-        const result = await pool.query('SELECT * FROM users WHERE username = $1', [adminId]);
-        const results = result.rows; 
-        
-        let loginSuccess = false;
-
-        if (results.length > 0) {
-            const match = await bcrypt.compare(password, results[0].password);
-            if (match) loginSuccess = true;
-        }
-
-        if (loginSuccess) {
-            if (loginAttempts[ip]) delete loginAttempts[ip]; 
-            req.session.isLoggedIn = true;
-            req.session.username = adminId;
-            await logActivity(adminId, 'LOGIN', 'Admin logged in successfully', req);
-            res.json({ success: true });
-        } else {
-            await logActivity(adminId || 'Unknown', 'LOGIN_FAILED', 'Failed login attempt', req); 
-            
-            if (!loginAttempts[ip]) loginAttempts[ip] = { count: 0, lockUntil: null };
-            loginAttempts[ip].count++;
-            if (loginAttempts[ip].count >= 3) {
-                loginAttempts[ip].lockUntil = now + 300000; 
-                return res.json({ success: false, message: "Too many failed attempts. You are BLOCKED for 5 minutes." });
-            }
-            res.status(401).json({ success: false, message: `Invalid Account. ${3 - loginAttempts[ip].count} attempts remaining.` });
-        }
-    } catch (err) {
-        console.error("Login Error:", err);
-        res.status(500).json({ success: false, message: "Server error during login." });
-    }
-});
+// --- Existing API Routes remain here ---
 
 // --- GET PARKING SPOTS ---
 app.get('/api/spots', async (req, res) => { 
-// ... (Get spots logic remains the same) ...
     try {
         const result = await pool.query('SELECT * FROM slots');
         res.json(result.rows);
@@ -275,7 +248,6 @@ app.get('/api/spots', async (req, res) => {
 
 // --- GET ACTIVITY LOGS ---
 app.get('/api/logs', checkAuth, async (req, res) => { 
-// ... (Get logs logic remains the same) ...
     try {
         const result = await pool.query('SELECT * FROM activity_logs ORDER BY timestamp DESC');
         res.json(result.rows);
@@ -285,10 +257,9 @@ app.get('/api/logs', checkAuth, async (req, res) => {
 });
 
 // --- UPDATE SPOT ---
-app.post('/api/update-spot', async (req, res) => { 
-// ... (Update spot logic remains the same) ...
+app.post('/api/update-spot', checkAuth, async (req, res) => { 
     const { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
-    const currentUser = req.session.username || 'Unknown Admin'; 
+    const currentUser = req.user && req.user.username ? req.user.username : 'Unknown Admin'; 
 
     try {
         if (status === 'occupied') {
@@ -296,7 +267,6 @@ app.post('/api/update-spot', async (req, res) => {
             if (!plate_number || !plateRegex.test(plate_number)) return res.json({ success: false, message: "Invalid Plate Number!" });
             if (!['Car', 'Motorcycle', 'Van', 'Others'].includes(vehicle_type)) return res.json({ success: false, message: "Invalid Vehicle Type." });
             
-            // Check for duplicates
             const checkResult = await pool.query('SELECT * FROM slots WHERE plate_number = $1 AND status = $2 AND slot_number != $3', [plate_number, 'occupied', slot_id]);
             if (checkResult.rows.length > 0) return res.json({ success: false, message: `Error: Vehicle ${plate_number} is already parked at ${checkResult.rows[0].slot_number}!` });
             
@@ -310,7 +280,6 @@ app.post('/api/update-spot', async (req, res) => {
     }
 
     async function executeUpdate(user) {
-        // Postgres query uses $1, $2, etc.
         const sql = 'UPDATE slots SET status = $1, plate_number = $2, start_time = $3, vehicle_type = $4 WHERE slot_number = $5';
         await pool.query(sql, [status, plate_number, park_time, vehicle_type, slot_id]);
         
@@ -323,14 +292,11 @@ app.post('/api/update-spot', async (req, res) => {
 
 // --- USER REPORT SUBMISSION ---
 app.post('/api/submit-report', async (req, res) => { 
-// ... (User report submission logic remains the same) ...
     const { category, description, name, plate, slot_id } = req.body; 
     
-    // Check for all required fields including slot_id
     if (!category || !description || !name || !plate || !slot_id) return res.json({ success: false, message: "All fields are required." });
 
     try {
-        // VERIFY PLATE AND SLOT_ID MATCH IN DATABASE (Validation is correct)
         const checkMatchSql = 'SELECT * FROM slots WHERE plate_number = $1 AND slot_number = $2 AND status = $3';
         const checkResult = await pool.query(checkMatchSql, [plate, slot_id, 'occupied']); 
 
@@ -338,11 +304,7 @@ app.post('/api/submit-report', async (req, res) => {
             return res.json({ success: false, message: `Report Failed: Vehicle ${plate} at slot ${slot_id} is not currently recorded as occupied in our system.` });
         }
 
-        // === FIX APPLIED HERE ===
-        // 1. Added 'slot_number' to the column list.
-        // 2. Added '$5' to the VALUES list.
         const insertSql = 'INSERT INTO problem_reports (category, description, reporter_name, plate_number, slot_number) VALUES ($1, $2, $3, $4, $5)';
-        // 3. Passed slot_id as the fifth parameter in the query array.
         await pool.query(insertSql, [category, description, name, plate, slot_id]);
         
         res.json({ success: true });
@@ -354,9 +316,7 @@ app.post('/api/submit-report', async (req, res) => {
 
 // --- ADMIN REPORT ACTIONS ---
 app.get('/api/admin/reports', checkAuth, async (req, res) => { 
-// ... (Admin report actions logic remains the same) ...
     try {
-        // SELECT * will now include the new slot_number column
         const result = await pool.query('SELECT * FROM problem_reports ORDER BY report_date DESC');
         res.json(result.rows);
     } catch (err) {
@@ -367,8 +327,9 @@ app.get('/api/admin/reports', checkAuth, async (req, res) => {
 app.delete('/api/admin/reports/:id', checkAuth, async (req, res) => { 
     const reportId = req.params.id;
     try {
+        const logUsername = req.user && req.user.username ? req.user.username : 'Unknown Admin';
         await pool.query('DELETE FROM problem_reports WHERE id = $1', [reportId]);
-        await logActivity(req.session.username || 'Admin', 'DELETE_REPORT', `Deleted report ID: ${reportId}`, req);
+        await logActivity(logUsername, 'DELETE_REPORT', `Deleted report ID: ${reportId}`, req);
         res.json({ success: true });
     } catch (err) {
         res.json({ success: false, message: "Database Error" });

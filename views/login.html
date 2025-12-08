@@ -22,21 +22,19 @@
   
   <div class="Front-content">
     <h2>ADMIN LOG IN</h2>
-    <P>Parking Availability monitoring map for the Technological University of the Philippines - Manila</P>
-    <form>
-      <label for="admin-id">Admin ID:</label>
-      <input type="text" id="admin-id" name="admin-id" />
-
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" />
-    </form>
+    <p>Parking Availability monitoring map for the Technological University of the Philippines - Manila</p>
     
-    <button class="login-btn" id="login-btn">LOG IN</button> 
+    <div class="oauth-container">
+        <a href="/auth/google" class="google-login-btn">
+            <img src="/image/google_icon.jpg" alt="Google Icon" class="google-icon">
+            LOG IN with Google
+        </a>
+    </div>
   </div>
 
   <img src="/car-top.png" alt="Car" class="car" id="car">
 
-  <script src="/script.js"></script>
+  <script src="/script.js"></script> 
 
 </body>
 </html>

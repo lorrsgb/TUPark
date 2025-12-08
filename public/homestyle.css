@@ -13,11 +13,11 @@ body.home-page {
   z-index: 0;
   height: 100vh;
   width: 100vw;
-  /* REVERTED: Changed alignment to place content on the side */
+  /* Repositioning to the side */
   display: flex;
   align-items: center; /* Center vertically */
   justify-content: flex-start; /* Move content to the left edge */
-  padding-left: 15vw; /* ADDED: Padding to push content away from the edge */
+  padding-left: 15vw; /* Padding to push content away from the edge */
   padding-top: 80px; /* Keep padding-top to account for the fixed navbar height */
   color: white;
   overflow: hidden; /* prevent scrolling issues */
@@ -90,120 +90,103 @@ nav ul li a:hover {
 .Front-content {
   position: relative;
   z-index: 2;
-  /* MODIFIED: Left-align the overall text block for a professional card look */
   text-align: left; 
-  /* Adjusted max-width to control the overall width of the form elements */
   max-width: 400px; 
   padding: 40px 20px;
   background: rgba(0, 0, 0, 0.7); 
   border-radius: 10px;
-  /* Ensure the block is aligned to the left side when flex-start is used above */
   margin: 0;
 }
 
-/* Re-align card contents back to center *within the card* for better layout */
+/* Text Styling */
 .Front-content h2 {
     text-align: center;
     margin-left: auto;
     margin-right: auto;
+    font-size: 3rem; 
+    font-weight: 800;
+    line-height: 1.2;
+    color: #007bff; 
+    margin-bottom: 5px; 
 }
 
 .Front-content p {
     text-align: center;
     margin-left: auto;
     margin-right: auto;
+    font-size: 1rem;
+    line-height: 1.4; 
+    color: #ddd;
+    margin: 0 0 25px 0; /* Add space above the button */
 }
 
-.Front-content h2 {
-  font-size: 3rem; 
-  font-weight: 800;
-  line-height: 1.2;
-  color: #007bff; 
-  margin-bottom: 5px; 
+/* --- REMOVED OBSOLETE FORM STYLES --- */
+/* Removed: .Front-content form, label, input, .login-btn */
+
+
+/* --- NEW GOOGLE OAUTH BUTTON STYLES --- */
+
+.oauth-container {
+    /* Ensures the button centers within the card */
+    display: flex; 
+    justify-content: center;
+    margin-top: 25px;
+    margin-bottom: 5px;
 }
 
-/* Sub-text proportion fixed */
-.Front-content p {
-  font-size: 1rem;
-  line-height: 1.4; 
-  color: #ddd;
-  margin: 0 0 25px 0; 
+.google-login-btn {
+    /* Style the anchor tag like a button */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background-color: #4285F4; /* Google Blue */
+    color: white;
+    padding: 12px 25px;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s;
+    width: 80%; 
+    max-width: 300px;
 }
 
-/* Form Styles */
-.Front-content form {
-    /* Use max-width here to ensure the form itself doesn't stretch the container */
-    max-width: 300px; 
-    margin: 0 auto; /* Center the form block within Front-content */
+.google-login-btn:hover {
+    background-color: #357ae8; 
 }
 
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 0.9rem;
-  color: #ddd;
-  text-align: left; 
+.google-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    background-color: white; 
+    border-radius: 50%;
 }
 
-/* Shorter Input Bars */
-input {
-  width: 100%; 
-  padding: 10px;
-  margin-bottom: 20px;
-  border: none;
-  border-radius: 25px;
-  background: #777;
-  color: #fff;
-  font-size: 0.90rem;
-}
-
-/* LOG IN BUTTON CENTERING MODIFICATION */
-.login-btn {
-  background: #555;
-  border: none;
-  padding: 12px 75px;
-  border-radius: 25px;
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.3s;
-  margin-top: 25px; 
-  
-  /* === NEW CENTERING STYLES === */
-  display: block; /* Important: Make the button a block element to accept margins */
-  margin-left: auto;
-  margin-right: auto;
-  /* ============================ */
-}
-
-.login-btn:hover {
-  background: #007bff;
-}
-
+/* Car Animation */
 .car {
   position: fixed;
-  bottom: -1000px; /* start below the screen */
-  right: -75px;  /* position near right side */
+  bottom: -1000px; 
+  right: -75px; 
   width: 700px;
   z-index: 10;
-  transform: rotate(0deg); /* keep it straight */
+  transform: rotate(0deg); 
   transition: bottom 2.5s ease-in-out;
 }
 
 .car.move {
-  bottom: -295px; /* move upward */
+  bottom: -295px; 
 }
 
 /* Page Fade Animations */
 body.fade-out {
   opacity: 0;
-  transition: opacity 0.8s ease; /* fade-out speed */
+  transition: opacity 0.8s ease; 
 }
 
 body.fade-in {
   opacity: 0;
-  animation: fadeInPage 0.8s ease forwards; /* fade-in when loaded */
+  animation: fadeInPage 0.8s ease forwards; 
 }
 
 @keyframes fadeInPage {
