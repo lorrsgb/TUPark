@@ -191,6 +191,7 @@ body.fade-in {
   height: 35px;  /* keep proportional */
   margin-right: 10px; /* space between image and text */
   object-fit: contain;
+  display: block;
 }
 
 
