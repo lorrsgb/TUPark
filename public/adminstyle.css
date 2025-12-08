@@ -36,7 +36,7 @@
   animation: modal-open 0.4s;
 }
 
-/* Styles for the wide Charts Modal (NOW APPROXIMATELY 75% OF SCREEN SIZE) */
+/* Styles for the wide Charts Modal (75% of screen size) */
 .charts-modal-content {
     margin: 3% auto; /* Center it higher up */
     max-width: 90%; 
@@ -443,19 +443,14 @@ nav ul li a:hover {
 .chart-grid {
     flex: 1; /* Allow the grid to take up space */
     display: grid;
-    /* Display three charts side-by-side on large screens */
-    grid-template-columns: repeat(3, 1fr); 
+    /* *** MODIFIED: Now using single column for vertical stacking *** */
+    grid-template-columns: 1fr; 
     gap: 20px;
     padding-top: 15px;
     overflow-y: auto; /* Add scroll for the charts if they don't fit vertically */
 }
 
-@media (max-width: 1150px) {
-    /* Stack charts on smaller screens */
-    .chart-grid {
-        grid-template-columns: 1fr;
-    }
-}
+/* Removed media query because single column is now the default */
 
 .chart-card {
     background: rgba(40, 40, 40, 0.7); /* Slightly lighter background inside the modal */
@@ -463,7 +458,8 @@ nav ul li a:hover {
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    min-height: 400px; /* Give charts a base height */
+    /* Reduced min-height since the cards are now stacked */
+    min-height: 350px; 
 }
 
 .chart-card h3 {
