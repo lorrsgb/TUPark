@@ -24,7 +24,7 @@
         <li><a href="/admin">Home</a></li>
         <li><a href="/admin/reports">User Reports</a></li>
         <li><a href="#" onclick="openLogsModal()">Admin Logs</a></li>
-        <li><a href="#" onclick="openChartsModal()">Occupancy Trends</a></li> 
+        <li><a href="#" onclick="openChartsModal()">Statistics</a></li> 
         <li><a href="/logout" style="color: #ff4444;">Logout</a></li>
       </ul>
     </nav>
@@ -773,7 +773,10 @@ async function initializeCharts() {
                     beginAtZero: true,
                     title: { display: true, text: 'Number of Spots' },
                     max: TOTAL_SPOTS + 5,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: {
+                        stepSize: 5 // *** MODIFIED: Forces y-axis to increment by 5 ***
+                    }
                 },
                 x: { grid: { display: false } }
             },
@@ -805,7 +808,10 @@ async function initializeCharts() {
                     beginAtZero: true,
                     title: { display: true, text: 'Number of Spots' },
                     max: TOTAL_SPOTS + 5,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: {
+                        stepSize: 5 // *** ADDED: Forces y-axis to increment by 5 ***
+                    }
                 },
                 x: { grid: { display: false } }
             },
@@ -819,13 +825,12 @@ async function initializeCharts() {
     // --- Monthly Chart (LINE CHART for trend) ---
     const monthlyCtx = document.getElementById('monthlyOccupancyChart').getContext('2d');
     monthlyChart = new Chart(monthlyCtx, {
-        type: 'line', // CHANGED FROM 'doughnut'
+        type: 'line',
         data: {
             labels: monthlyLabels,
             datasets: [{
                 label: 'Avg. Occupied Slots',
                 data: monthlyAvgOccupied,
-                // Using line colors appropriate for trends
                 backgroundColor: 'rgba(255, 159, 64, 0.2)', // Orange/Yellow fill
                 borderColor: '#ff9f40', // Orange line
                 pointBackgroundColor: '#ff9f40',
@@ -845,7 +850,10 @@ async function initializeCharts() {
                     beginAtZero: true,
                     title: { display: true, text: 'Avg. Occupied Slots' },
                     max: TOTAL_SPOTS + 5,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: {
+                        stepSize: 5 // *** ADDED: Forces y-axis to increment by 5 ***
+                    }
                 },
                 x: { grid: { display: false } }
             },
