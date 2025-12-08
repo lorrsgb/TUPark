@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Park Availability</title>
+<title>Parking Availability</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
 <link rel="stylesheet" href="adminstyle.css" />
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
 </head>
 <body>
  
@@ -16,13 +18,13 @@
     <div class="logo"> 
       <span>TUPark</span>
       <img src="/TUPARK.png" alt="Logo" class="logo-img">
-      <img src="/tup-logo.png" alt="TUP Logo" class="tup-logo">
     </div> 
     <nav>
       <ul>
         <li><a href="/admin">Home</a></li>
         <li><a href="/admin/reports">User Reports</a></li>
-        <li><a href="#" onclick="openLogsModal()">Usage</a></li>
+        <li><a href="#" onclick="openLogsModal()">Admin Logs</a></li>
+        <li><a href="#" onclick="openChartsModal()">Occupancy Trends</a></li> 
         <li><a href="/logout" style="color: #ff4444;">Logout</a></li>
       </ul>
     </nav>
@@ -142,10 +144,36 @@
   </div>
 </div>
 
+  <div id="charts-modal" class="modal">
+    <div class="modal-content charts-modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3>Occupancy Trends</h3>
+            <span class="close-button" onclick="closeChartsModal()">&times;</span>
+        </div>
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>Daily Occupancy</h3>
+                <canvas id="dailyOccupancyChart"></canvas>
+                <p class="chart-footer">Shows hourly occupancy count for the last 24 hours.</p>
+            </div>
+            <div class="chart-card">
+                <h3>Weekly Occupancy</h3>
+                <canvas id="weeklyOccupancyChart"></canvas>
+                <p class="chart-footer">Shows total unique occupancy events per day over the last 7 days.</p>
+            </div>
+            <div class="chart-card">
+                <h3>Monthly Occupancy</h3>
+                <canvas id="monthlyOccupancyChart"></canvas>
+                <p class="chart-footer">Shows average unique occupied slots per month (last 12 months).</p>
+            </div>
+        </div>
+    </div>
+  </div>
   <script>
 // ==========================================
 // 1. CONFIGURATION
 // ==========================================
+// ... (The rest of Section 1 through Section 6 remains the same) ...
 const locationSelect = document.getElementById('park-location');
 const mapImage = document.getElementById('map-image');
 const resetButton = document.getElementById('reset-filter');
@@ -530,7 +558,11 @@ function releaseSpot(spotId) {
   });
 }
 
-window.onclick = (e) => { if (e.target === modal) closeModal(); }
+window.onclick = (e) => { 
+    if (e.target === modal) closeModal(); 
+    if (e.target === logsModal) closeLogsModal();
+    if (e.target === chartsModal) closeChartsModal();
+}
 
 // ==========================================
 // 5. EVENT LISTENERS
@@ -581,7 +613,7 @@ resetButton.addEventListener('click', () => {
 fetchAndRenderSpots('none');
 window.addEventListener("load", () => document.body.classList.add("fade-in"));
 
-// --- LOGS LOGIC (Uses the Modal for Activity Logs) ---
+// --- LOGS MODAL LOGIC ---
 const logsModal = document.getElementById('logs-modal');
 const logsList = document.getElementById('logs-list');
 
@@ -614,10 +646,23 @@ async function fetchLogs() {
         });
     } catch (err) { console.error(err); }
 }
-window.addEventListener('click', (e) => { if (e.target === logsModal) closeLogsModal(); });
+
+// --- NEW CHARTS MODAL LOGIC ---
+const chartsModal = document.getElementById('charts-modal');
+
+function openChartsModal() {
+    chartsModal.classList.add('show-modal');
+    // Ensure charts are initialized/updated when the modal opens
+    initializeCharts();
+}
+
+function closeChartsModal() {
+    chartsModal.classList.remove('show-modal');
+}
 
 // ==========================================
 // 6. AUTO SESSION TIMEOUT (Idle Detection)
+// ... (Section 6 remains the same) ...
 // ==========================================
 let idleTime = 0;
 
@@ -638,8 +683,6 @@ document.onscroll = resetTimer;
 
 // Check idle status every second
 setInterval(() => {
-    idleTime += 1000; // Add 1 second to counter
-    
     if (idleTime >= TIMEOUT_LIMIT) {
         // 1. Tell Server to log the timeout
         fetch('/api/session-timeout', { method: 'POST' })
@@ -649,7 +692,163 @@ setInterval(() => {
             window.location.href = '/login-page';
         });
     }
+    idleTime += 1000; // Add 1 second to counter
 }, 1000);
+
+
+// ==========================================
+// 7. CHART.JS IMPLEMENTATION LOGIC 📊
+// ==========================================
+
+let dailyChart, weeklyChart, monthlyChart;
+const TOTAL_SPOTS = 85; // **IMPORTANT: ADJUST THIS TO YOUR ACTUAL TOTAL NUMBER OF PARKING SPOTS**
+
+// --- Helper function to fetch data ---
+async function fetchChartData(endpoint) {
+    try {
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error('Network response was not ok');
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching data from ${endpoint}:`, error);
+        return [];
+    }
+}
+
+// --- Initialization Function ---
+async function initializeCharts() {
+    // 1. Fetch ALL Real Data
+    const dailyDataRaw = await fetchChartData('/api/charts/daily');
+    const weeklyDataRaw = await fetchChartData('/api/charts/weekly');
+    const monthlyDataRaw = await fetchChartData('/api/charts/monthly');
+
+    // Clean up old charts
+    if (dailyChart) dailyChart.destroy();
+    if (weeklyChart) weeklyChart.destroy();
+    if (monthlyChart) monthlyChart.destroy();
+
+    // 2. Prepare Daily Data
+    const dailyLabels = dailyDataRaw.map(d => d.hour_label + ':00');
+    const dailyOccupied = dailyDataRaw.map(d => parseInt(d.occupied_count, 10));
+
+    // 3. Prepare Weekly Data
+    const weeklyLabels = weeklyDataRaw.map(d => d.day_label);
+    const weeklyOccupied = weeklyDataRaw.map(d => parseInt(d.occupied_slots_count, 10));
+
+    // 4. Prepare Monthly Data
+    const monthlyLabels = monthlyDataRaw.map(d => d.month_label);
+    // Use average occupied slots for the monthly chart
+    const monthlyAvgOccupied = monthlyDataRaw.map(d => parseInt(d.average_occupied_slots, 10));
+
+    // --- Daily Chart (Line) ---
+    const dailyCtx = document.getElementById('dailyOccupancyChart').getContext('2d');
+    dailyChart = new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+            labels: dailyLabels,
+            datasets: [{
+                label: 'Occupied Spots',
+                data: dailyOccupied,
+                backgroundColor: 'rgba(0, 123, 255, 0.2)', // Blue
+                borderColor: '#007bff',
+                pointBackgroundColor: '#007bff',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#007bff',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Number of Spots' },
+                    max: TOTAL_SPOTS + 5,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: false }
+            }
+        }
+    });
+
+    // --- Weekly Chart (Bar) ---
+    const weeklyCtx = document.getElementById('weeklyOccupancyChart').getContext('2d');
+    weeklyChart = new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+            labels: weeklyLabels,
+            datasets: [{
+                label: 'Occupied Slots',
+                data: weeklyOccupied,
+                backgroundColor: 'rgba(34, 197, 94, 0.7)', // Green
+                borderColor: '#22c55e',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Number of Spots' },
+                    max: TOTAL_SPOTS + 5,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: false }
+            }
+        }
+    });
+
+    // --- Monthly Chart (Doughnut) ---
+    const monthlyCtx = document.getElementById('monthlyOccupancyChart').getContext('2d');
+    monthlyChart = new Chart(monthlyCtx, {
+        type: 'doughnut',
+        data: {
+            labels: monthlyLabels,
+            datasets: [{
+                label: 'Monthly Average Occupied Slots',
+                data: monthlyAvgOccupied,
+                backgroundColor: [
+                    '#007bff', '#22c55e', '#ef4444', '#f59e0b', '#a855f7', '#ec4899', '#14b8a6', '#f97316', '#84cc16', '#3b82f6', '#d946ef', '#f43f5e'
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: 'white' } },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) { label += ': '; }
+                            if (context.parsed !== null) { label += context.parsed + ' Slots'; }
+                            return label;
+                        }
+                    }
+                },
+                title: { display: false }
+            }
+        }
+    });
+}
+
+// Call the function when the page loads to display the charts.
+// Note: initializeCharts is now only called when the charts modal is opened.
+// window.addEventListener('load', initializeCharts); 
 
 </script>
 </body>

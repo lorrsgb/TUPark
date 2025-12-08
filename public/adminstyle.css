@@ -22,18 +22,28 @@
   opacity: 1;
 }
 
-/* Modal Content Box */
+/* Modal Content Box (Default size for Spot and Logs) */
 .modal-content {
   background-color: #333;
   margin: 15% auto; /* 15% from the top and centered */
   padding: 30px;
   border: 1px solid #888;
   width: 80%; /* Could be more or less, depending on screen size */
-  max-width: 400px;
+  max-width: 400px; /* Default max-width for smaller modals */
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   position: relative;
   animation: modal-open 0.4s;
+}
+
+/* Styles for the wide Charts Modal (75% of screen size) */
+.charts-modal-content {
+    margin: 3% auto; /* Center it higher up */
+    max-width: 90%; 
+    width: 1400px; /* Increased Width for 75% effect on large screens */
+    height: 94vh; /* Increased Height for 75% effect */
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes modal-open {
@@ -178,21 +188,12 @@ body.fade-in {
   font-weight: 700;
   color: white;
   letter-spacing: 2px;
-  gap: 2px;
 }
 
 .logo-img {
   width: 35px;   /* adjust image size */
   height: 35px;  /* keep proportional */
-  margin-right: 5px; /* space between image and text */
-  object-fit: contain;
-}
-
-.tup-logo {
-  width: 35px;   /* adjust image size */
-  height: 35px;  /* keep proportional */
-  margin-right: 5px; /* space between image and text */
-  margin-top: 5px;
+  margin-right: 10px; /* space between image and text */
   object-fit: contain;
 }
 
@@ -243,6 +244,7 @@ nav ul li a:hover {
   flex-direction: column;
   padding-top: 80px;
   height: 100%;
+  padding-bottom: 30px; /* Add padding for charts below */
 }
 
 .container {
@@ -435,61 +437,47 @@ nav ul li a:hover {
     transform: translate(-50%, -50%) scale(1);
   }
 }
-/* Modal full scroll */
-.usage-modal {
-    max-width: 700px;
-    height: 85vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
+
+/* =============== NEW CHART STYLES (Adjusted for Modal) =============== */
+
+.chart-grid {
+    flex: 1; /* Allow the grid to take up space */
+    display: grid;
+    /* *** MODIFIED: Now using single column for vertical stacking *** */
+    grid-template-columns: 1fr; 
     gap: 20px;
+    padding-top: 15px;
+    overflow-y: auto; /* Add scroll for the charts if they don't fit vertically */
 }
 
-/* Floating card */
-.usage-card {
-    background: rgba(35, 35, 35, 0.85);
-    backdrop-filter: blur(8px);
-    border-radius: 12px;
-    padding: 15px 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+/* Removed media query because single column is now the default */
+
+.chart-card {
+    background: rgba(40, 40, 40, 0.7); /* Slightly lighter background inside the modal */
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    /* Reduced min-height since the cards are now stacked */
+    min-height: 350px; 
 }
 
-/* Floating card header */
-.usage-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+.chart-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
 }
 
-/* Card body scrollable */
-.usage-card-body {
-    max-height: 300px;
-    overflow-y: auto;
-    padding-right: 5px;
+.chart-footer {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-top: 10px;
 }
 
-/* Stats UI */
-.stats-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.stats-tab {
-    padding: 7px 12px;
-    background: #444;
-    border: none;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.stats-tab.active {
-    background: #22c55e;
-}
-
-.chart-box {
-    width: 100%;
-    height: 250px;
+/* Ensure canvas takes up available space */
+.chart-card canvas {
+    max-width: 100%;
+    height: auto;
 }
