@@ -24,7 +24,7 @@
         <li><a href="/admin">Home</a></li>
         <li><a href="/admin/reports">User Reports</a></li>
         <li><a href="#" onclick="openLogsModal()">Admin Logs</a></li>
-        <li><a href="#" onclick="openChartsModal()">Occupancy Trends</a></li> 
+        <li><a href="#" onclick="openChartsModal()">Statistics</a></li> 
         <li><a href="/logout" style="color: #ff4444;">Logout</a></li>
       </ul>
     </nav>
@@ -472,6 +472,7 @@ function handleSpotClick(spotData) {
   modal.classList.add('show-modal');
 }
 
+<<<<<<< HEAD
 function occupySpot(spotId) { 
   const vehicleInput = document.getElementById(`vehicle-input-${spotId}`); 
   const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
@@ -502,6 +503,32 @@ function occupySpot(spotId) {
   // 3. Check for valid characters in the raw input
   // The regex /^[A-Z0-9\s-]*$/ ensures ONLY valid characters were used (letters, numbers, spaces, or hyphens).
   if (!/^[A-Z0-9\s-]*$/.test(vehicleNoRaw)) {
+=======
+function occupySpot(spotId) {
+  const vehicleInput = document.getElementById(`vehicle-input-${spotId}`);
+  const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
+  
+  // Clean inputs
+  const vehicleNo = vehicleInput.value.trim().toUpperCase();
+  const vehicleType = typeInput.value; 
+
+  if (vehicleNo === "") {
+      alert("Plate number cannot be empty. Please enter a value.");
+      vehicleInput.focus();
+      return; 
+  }
+
+  // 2. Check for length constraints
+  if (vehicleNo.length < 7 || vehicleNo.length > 8) {
+      alert("Plate number must be between 6 and 7 characters.");
+      vehicleInput.focus();
+      return;
+  }
+
+  // 3. Check for valid characters (using the same regex as the HTML pattern, but stricter)
+  // The regex: /^[A-Z0-9\s-]{3,10}$/ ensures it only contains uppercase letters, numbers, spaces, or hyphens.
+  if (!/^[A-Z0-9\s-]{3,10}$/.test(vehicleNo)) {
+>>>>>>> 64d3f3186f25c03b51630273b1de7c39f252e305
       alert("Invalid plate number format. Only letters, numbers, spaces, or hyphens are allowed.");
       vehicleInput.focus();
       return;
@@ -703,12 +730,6 @@ setInterval(() => {
     idleTime += 1000; // Add 1 second to counter
 }, 1000);
 
-
-// ==========================================
-// 7. CHART.JS IMPLEMENTATION LOGIC 📊
-// ==========================================
-
-// ... (Lines 1 to ~580 remain the same) ...
 
 // ==========================================
 // 7. CHART.JS IMPLEMENTATION LOGIC 📊
