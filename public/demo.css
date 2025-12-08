@@ -188,8 +188,8 @@ body.fade-in {
 }
 
 .tup-wrapper {
-  width: 25px;               /* visual size you want */
-  height: 25px;
+  width: 25px !important;               /* visual size you want */
+  height: 25px !important;
   overflow: hidden;          /* crop extra space */
   display: flex;
   align-items: center;
