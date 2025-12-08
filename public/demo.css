@@ -191,8 +191,8 @@ body.fade-in {
   width: 25px;       /* keep container size same */
   height: 25px;
   object-fit: contain;
-  transform: translate(-70%, 0);   /* shrink the image visually */
-  transform: scale(0.7);
+  transform: translate(-90%, 0);   /* shrink the image visually */
+  transform: scale(1);
   transform-origin: center; /* keep it centered */
   margin-right: 10px;
   display: block;
