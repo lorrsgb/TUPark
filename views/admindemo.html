@@ -472,30 +472,30 @@ function handleSpotClick(spotData) {
   modal.classList.add('show-modal');
 }
 
-function occupySpot(spotId) {
-  const vehicleInput = document.getElementById(`vehicle-input-${spotId}`);
-  const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
+function occupySpot(spotId) { 
+  const vehicleInput = document.getElementById(vehicle-input-${spotId}); 
+  const typeInput = document.getElementById(vehicle-type-input-${spotId}); 
   
-  // Clean inputs
-  const vehicleNo = vehicleInput.value.trim().toUpperCase();
+  // Clean inputs 
+  const vehicleNo = vehicleInput.value.trim().toUpperCase(); 
   const vehicleType = typeInput.value; 
-
-  if (vehicleNo === "") {
-      alert("Plate number cannot be empty. Please enter a value.");
-      vehicleInput.focus();
-      return; 
-  }
-
-  // 2. Check for length constraints
-  if (vehicleNo.length < 7 || vehicleNo.length > 8) {
-      alert("Plate number must be between 6 and 7 characters.");
-      vehicleInput.focus();
-      return;
-  }
-
-  // 3. Check for valid characters (using the same regex as the HTML pattern, but stricter)
-  // The regex: /^[A-Z0-9\s-]{3,10}$/ ensures it only contains uppercase letters, numbers, spaces, or hyphens.
-  if (!/^[A-Z0-9\s-]{3,10}$/.test(vehicleNo)) {
+  
+  if (vehicleNo === "") {       
+    alert("Plate number cannot be empty. Please enter a value.");       
+    vehicleInput.focus();       
+    return;   
+  }   
+  
+  // 2. Check for length constraints
+  if (vehicleNo.length !== 6 && vehicleNo.length !== 7) {       
+    alert("Plate number must be between 6 and 7 characters.");       
+    vehicleInput.focus();       
+    return;   
+  }   
+  
+  // 3. Check for valid characters (using the same regex as the HTML pattern, but stricter)
+  // The regex: /^[A-Z0-9\s-]{3,10}$/ ensures it only contains uppercase letters, numbers, spaces, or hyphens.
+  if (!/^[A-Z0-9\s-]{3,10}$/.test(vehicleNo)) {
       alert("Invalid plate number format. Only letters, numbers, spaces, or hyphens are allowed.");
       vehicleInput.focus();
       return;
