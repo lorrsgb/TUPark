@@ -194,6 +194,7 @@ body.fade-in {
   display: flex;
   align-items: center;
   justify-content: center;   /* center the logo inside the container */
+  background-color: rgba(0,0,0,0.05);
 }
 
 .TUP-img {
