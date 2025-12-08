@@ -36,12 +36,12 @@
   animation: modal-open 0.4s;
 }
 
-/* Styles for the wide Charts Modal */
+/* Styles for the wide Charts Modal (NOW APPROXIMATELY 75% OF SCREEN SIZE) */
 .charts-modal-content {
-    margin: 5% auto; /* Center higher up */
-    max-width: 90%; /* Much wider */
-    width: 1100px;
-    height: 90vh; /* Takes up most of the screen height */
+    margin: 3% auto; /* Center it higher up */
+    max-width: 90%; 
+    width: 1400px; /* Increased Width for 75% effect on large screens */
+    height: 94vh; /* Increased Height for 75% effect */
     display: flex;
     flex-direction: column;
 }
@@ -438,20 +438,7 @@ nav ul li a:hover {
   }
 }
 
-/* =============== NEW CHART STYLES =============== */
-
-#occupancy-charts-container {
-    max-width: 1200px;
-    margin: 30px auto; /* Center it below the main content */
-    padding: 0 10px;
-}
-
-#occupancy-charts-container h2 {
-    font-size: 1.8rem;
-    margin-bottom: 20px;
-    color: #007bff;
-    text-align: center;
-}
+/* =============== NEW CHART STYLES (Adjusted for Modal) =============== */
 
 .chart-grid {
     flex: 1; /* Allow the grid to take up space */
