@@ -186,6 +186,14 @@ body.fade-in {
   object-fit: contain;
 }
 
+.TUP-img {
+  width: 35px;   /* adjust image size */
+  height: 35px;  /* keep proportional */
+  margin-right: 10px; /* space between image and text */
+  object-fit: contain;
+}
+
+
 
 nav ul {
   display: flex;
