@@ -511,13 +511,17 @@ function occupySpot(spotId) {
 
   // Get Local Time
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const phTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+
+  const year = phTime.getFullYear();
+  const month = String(phTime.getMonth() + 1).padStart(2, '0');
+  const day = String(phTime.getDate()).padStart(2, '0');
+  const hours = String(phTime.getHours()).padStart(2, '0');
+  const minutes = String(phTime.getMinutes()).padStart(2, '0');
+  const seconds = String(phTime.getSeconds()).padStart(2, '0');
+
   const time = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
 
   fetch('/api/update-spot', {
       method: 'POST',
