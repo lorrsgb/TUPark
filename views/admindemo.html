@@ -7,55 +7,8 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-<link rel="stylesheet" href="/adminstyle.css" />
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-
-<style>
-/* Stats Modal Floating Box */
-#usage-modal .modal-content {
-    max-width: 750px;
-    height: 80vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.stats-tabs button {
-    padding: 8px 16px;
-    background: #333;
-    border: none;
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.stats-tabs button.active {
-    background: #007bff;
-}
-
-.stats-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-
-.stats-table th, .stats-table td {
-    padding: 10px;
-    border: 1px solid #555;
-}
-
-/* POSITION THE TWO USAGE FLOATING BOXES */
-#activityLogsModal .modal-content {
-    margin-top: 50px; /* top modal */
-}
-
-#usage-modal .modal-content {
-    margin-top: 30px; /* second modal under logs */
-}
-
-</style>
-
+<link rel="stylesheet" href="adminstyle.css" />
 </head>
 <body>
  
@@ -68,7 +21,7 @@
       <ul>
         <li><a href="/admin">Home</a></li>
         <li><a href="/admin/reports">User Reports</a></li>
-        <li><a href="#" onclick="openUsageSection()">Usage</a></li>
+        <li><a href="#" onclick="openLogsModal()">Admin Logs</a></li>
         <li><a href="/logout" style="color: #ff4444;">Logout</a></li>
       </ul>
     </nav>
@@ -102,8 +55,7 @@
         <div class="form-group">
           <label for="vehicle-type">Type of Vehicle</label>
           <select id="vehicle-type">
-            <option value="all">All</option> <!-- This is Required -->
-            <option value="Car">Car</option>
+            <option value="all">All</option> <option value="Car">Car</option>
             <option value="Motorcycle">Motorcycle</option>
             <option value="Van">Van</option>
             <option value="Others">Others</option>
@@ -177,59 +129,16 @@
     </div>
   </div>
 
-  <div id="activityLogsModal" class="modal">
-    <div class="modal-content">
-      <h2>Activity Logs</h2>
-      <div class="scroll-box">
-        <ul id="activityLogsList"></ul>
+  <div id="logs-modal" class="modal">
+  <div class="modal-content" style="max-width: 700px; height: 80vh; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3>System Activity Logs</h3>
+        <span class="close-button" onclick="closeLogsModal()">&times;</span>
       </div>
-      <button class="close-btn" onclick="closeUsageSection()">Close</button>
-    </div>
-</div>
-
-  <div id="usage-modal" class="modal">
-    <div class="modal-content">
-
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3>Occupancy Statistics</h3>
-            <span class="close-button" onclick="closeUsageModal()">&times;</span>
-        </div>
-
-        <!-- Tabs -->
-        <div class="stats-tabs" style="margin-top:10px; display:flex; gap:10px;">
-            <button class="stats-tab active" data-range="daily">Daily</button>
-            <button class="stats-tab" data-range="weekly">Weekly</button>
-            <button class="stats-tab" data-range="monthly">Monthly</button>
-        </div>
-
-        <!-- Chart -->
-        <div style="
-            background:rgba(255,255,255,0.05);
-            padding:15px;
-            border-radius:10px;
-            height:260px;
-            margin-top:15px;
-            flex-shrink:0;
-        ">
-            <canvas id="usageStatsChart"></canvas>
-        </div>
-
-        <!-- Summary Table -->
-        <div style="overflow-y:auto; margin-top:15px; flex:1;">
-            <table class="stats-table">
-                <thead>
-                    <tr>
-                        <th>Period</th>
-                        <th>Peak Day</th>
-                        <th>Slow Day</th>
-                        <th>Average Occupancy</th>
-                    </tr>
-                </thead>
-                <tbody id="usage-stats-summary"></tbody>
-            </table>
-        </div>
-
-</div>
+      <div id="logs-list" style="flex: 1; overflow-y: auto; border-top: 1px solid #555; padding-top: 10px;">
+          <p>Loading...</p>
+      </div>
+  </div>
 </div>
 
   <script>
@@ -246,8 +155,6 @@ const vehicleTypeSelect = document.getElementById('vehicle-type');
 const modal = document.getElementById('spot-modal');
 const modalTitle = document.getElementById('modal-title');
 const modalBody = document.getElementById('modal-body');
-const usageModal = document.getElementById("usage-modal");
-
 
 const mapImages = {
   none: '2.png',
@@ -603,20 +510,6 @@ function releaseSpot(spotId) {
 
 window.onclick = (e) => { if (e.target === modal) closeModal(); }
 
-function openUsageSection() {
-    document.getElementById("activityLogsModal").classList.add("show-modal");
-    document.getElementById("usage-modal").classList.add("show-modal");
-
-    loadUsageStatistics("daily");
-    fetchActivityLogs();
-}
-
-function closeUsageSection() {
-    document.getElementById("activityLogsModal").classList.remove("show-modal");
-    document.getElementById("usage-modal").classList.remove("show-modal");
-}
-
-
 // ==========================================
 // 5. EVENT LISTENERS
 // ==========================================
@@ -666,7 +559,7 @@ resetButton.addEventListener('click', () => {
 fetchAndRenderSpots('none');
 window.addEventListener("load", () => document.body.classList.add("fade-in"));
 
-// --- LOGS LOGIC ---
+// --- LOGS LOGIC (Uses the Modal for Activity Logs) ---
 const logsModal = document.getElementById('logs-modal');
 const logsList = document.getElementById('logs-list');
 
@@ -700,10 +593,6 @@ async function fetchLogs() {
     } catch (err) { console.error(err); }
 }
 window.addEventListener('click', (e) => { if (e.target === logsModal) closeLogsModal(); });
-
-function closeUsageModal() {
-    document.getElementById("usage-modal").classList.remove("show-modal");
-}
 
 // ==========================================
 // 6. AUTO SESSION TIMEOUT (Idle Detection)
@@ -739,46 +628,6 @@ setInterval(() => {
         });
     }
 }, 1000);
-
-const ctx = document.getElementById("occupancyChart").getContext("2d");
-
-let occupancyChart = new Chart(ctx, {
-    type: "line",
-    data: {
-        labels: [],
-        datasets: [{
-            label: "Occupancy",
-            data: [],
-            borderWidth: 2
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: { beginAtZero: true }
-        }
-    }
-});
-
-async function loadStats(range) {
-    const res = await fetch(`/stats?range=${range}`);
-    const data = await res.json();
-
-    occupancyChart.data.labels = data.labels;
-    occupancyChart.data.datasets[0].data = data.values;
-    occupancyChart.update();
-}
-
-document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-        document.querySelector(".tab-btn.active").classList.remove("active");
-        btn.classList.add("active");
-        loadStats(btn.dataset.range);
-    });
-});
-
-// Load daily by default
-loadStats("daily");
 
 </script>
 </body>
