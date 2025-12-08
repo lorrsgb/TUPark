@@ -188,14 +188,6 @@ body.fade-in {
   display: block;
 }
 
-.TUP-img {
-  width: 35px !important;   /* adjust image size */
-  height: 35px !important;  /* keep proportional */
-  margin-right: 10px; /* space between image and text */
-  object-fit: contain;
-  display: block !important;
-}
-
 nav ul {
   display: flex;
   list-style: none;
