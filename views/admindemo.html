@@ -3,12 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Park Availability</title>
+<title>Parking Availability</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
 <link rel="stylesheet" href="adminstyle.css" />
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 <body>
  
@@ -16,13 +19,12 @@
     <div class="logo"> 
       <span>TUPark</span>
       <img src="/TUPARK.png" alt="Logo" class="logo-img">
-      <img src="/tup-logo.png" alt="TUP Logo" class="tup-logo">
     </div> 
     <nav>
       <ul>
         <li><a href="/admin">Home</a></li>
         <li><a href="/admin/reports">User Reports</a></li>
-        <li><a href="#" onclick="openLogsModal()">Usage</a></li>
+        <li><a href="#" onclick="openLogsModal()">Admin Logs</a></li>
         <li><a href="/logout" style="color: #ff4444;">Logout</a></li>
       </ul>
     </nav>
@@ -142,6 +144,26 @@
   </div>
 </div>
 
+  <div id="occupancy-charts-container" class="chart-container-wrapper">
+    <h2>Occupancy Trends</h2>
+    <div class="chart-grid">
+        <div class="chart-card">
+            <h3>Daily Occupancy</h3>
+            <canvas id="dailyOccupancyChart"></canvas>
+            <p class="chart-footer">Shows average occupancy for the last 24 hours.</p>
+        </div>
+        <div class="chart-card">
+            <h3>Weekly Occupancy</h3>
+            <canvas id="weeklyOccupancyChart"></canvas>
+            <p class="chart-footer">Shows peak occupancy over the last 7 days.</p>
+        </div>
+        <div class="chart-card">
+            <h3>Monthly Occupancy</h3>
+            <canvas id="monthlyOccupancyChart"></canvas>
+            <p class="chart-footer">Shows total unique occupancy events per month.</p>
+        </div>
+    </div>
+  </div>
   <script>
 // ==========================================
 // 1. CONFIGURATION
@@ -567,6 +589,7 @@ const logsList = document.getElementById('logs-list');
 function openLogsModal() {
     logsModal.classList.add('show-modal');
     fetchLogs();
+    // OPTIONAL: Call function to update/show charts here if you make this a separate chart modal.
 }
 
 function closeLogsModal() {
@@ -629,6 +652,159 @@ setInterval(() => {
         });
     }
 }, 1000);
+
+// ==========================================
+// ==========================================
+// 7. CHART.JS IMPLEMENTATION LOGIC 📊
+// NOTE: You must include Chart.js library for this to work.
+// ==========================================
+
+// Global variable to hold chart instances
+let dailyChart, weeklyChart, monthlyChart;
+const TOTAL_SPOTS = 85; // Calculate total spots for accurate occupancy rate
+
+// --- Initialization Function ---
+function initializeCharts() {
+    // Destroy existing chart instances if they exist to prevent duplicates
+    if (dailyChart) dailyChart.destroy();
+    if (weeklyChart) weeklyChart.destroy();
+    if (monthlyChart) monthlyChart.destroy();
+
+    // 1. Fetch data from your backend API (requires new routes in server.js)
+    // For now, we use mockup data.
+    const mockDailyData = [15, 10, 25, 65, 85, 70, 40, 20]; // Mock occupied spots
+    const mockWeeklyData = [50, 60, 75, 90, 85, 40, 20]; // Mock occupied spots for 7 days
+    const mockMonthlyData = [40, 60, 75, 80, 70, 50, 65, 78, 85, 90, 95, 88]; // Mock average rate (%) for 12 months
+
+    // 2. Render Daily Occupancy Chart (Line Chart)
+    const dailyCtx = document.getElementById('dailyOccupancyChart').getContext('2d');
+    dailyChart = new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+            labels: ['12am', '3am', '6am', '9am', '12pm', '3pm', '6pm', '9pm'],
+            datasets: [{
+                label: 'Occupied Spots',
+                data: mockDailyData,
+                backgroundColor: 'rgba(0, 123, 255, 0.2)', // Blue
+                borderColor: '#007bff',
+                pointBackgroundColor: '#007bff',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#007bff',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Spots'
+                    },
+                    max: TOTAL_SPOTS + 5,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: false }
+            }
+        }
+    });
+
+    // 3. Render Weekly Occupancy Chart (Bar Chart)
+    const weeklyCtx = document.getElementById('weeklyOccupancyChart').getContext('2d');
+    weeklyChart = new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Occupied Spots',
+                data: mockWeeklyData,
+                backgroundColor: [
+                    'rgba(34, 197, 94, 0.7)', // Green
+                    'rgba(34, 197, 94, 0.7)',
+                    'rgba(34, 197, 94, 0.7)',
+                    'rgba(34, 197, 94, 1)', // Highlighted
+                    'rgba(34, 197, 94, 0.7)',
+                    'rgba(34, 197, 94, 0.7)',
+                    'rgba(34, 197, 94, 0.7)'
+                ],
+                borderColor: '#22c55e',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Spots'
+                    },
+                    max: TOTAL_SPOTS + 5,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: false }
+            }
+        }
+    });
+
+    // 4. Render Monthly Occupancy Chart (Doughnut Chart - showing average rate)
+    const monthlyCtx = document.getElementById('monthlyOccupancyChart').getContext('2d');
+    monthlyChart = new Chart(monthlyCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            datasets: [{
+                label: 'Monthly Average Occupancy Rate (%)',
+                data: mockMonthlyData,
+                backgroundColor: [
+                    '#007bff', '#22c55e', '#ef4444', '#f59e0b', '#a855f7', '#ec4899', '#14b8a6', '#f97316', '#84cc16', '#3b82f6', '#d946ef', '#f43f5e'
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: 'white' }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed !== null) {
+                                label += context.parsed + '%';
+                            }
+                            return label;
+                        }
+                    }
+                },
+                title: { display: false }
+            }
+        }
+    });
+}
+
+// Call the function when the page loads to display the charts.
+window.addEventListener('load', initializeCharts);
 
 </script>
 </body>

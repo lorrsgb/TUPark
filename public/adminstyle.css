@@ -178,21 +178,12 @@ body.fade-in {
   font-weight: 700;
   color: white;
   letter-spacing: 2px;
-  gap: 2px;
 }
 
 .logo-img {
   width: 35px;   /* adjust image size */
   height: 35px;  /* keep proportional */
-  margin-right: 5px; /* space between image and text */
-  object-fit: contain;
-}
-
-.tup-logo {
-  width: 35px;   /* adjust image size */
-  height: 35px;  /* keep proportional */
-  margin-right: 5px; /* space between image and text */
-  margin-top: 5px;
+  margin-right: 10px; /* space between image and text */
   object-fit: contain;
 }
 
@@ -243,6 +234,7 @@ nav ul li a:hover {
   flex-direction: column;
   padding-top: 80px;
   height: 100%;
+  padding-bottom: 30px; /* Add padding for charts below */
 }
 
 .container {
@@ -435,61 +427,53 @@ nav ul li a:hover {
     transform: translate(-50%, -50%) scale(1);
   }
 }
-/* Modal full scroll */
-.usage-modal {
-    max-width: 700px;
-    height: 85vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
+
+/* =============== NEW CHART STYLES =============== */
+
+#occupancy-charts-container {
+    max-width: 1200px;
+    margin: 30px auto; /* Center it below the main content */
+    padding: 0 10px;
+}
+
+#occupancy-charts-container h2 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: #007bff;
+    text-align: center;
+}
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
 }
 
-/* Floating card */
-.usage-card {
-    background: rgba(35, 35, 35, 0.85);
-    backdrop-filter: blur(8px);
-    border-radius: 12px;
-    padding: 15px 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+.chart-card {
+    background: rgba(96, 96, 96, 0.4);
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Floating card header */
-.usage-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+.chart-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
 }
 
-/* Card body scrollable */
-.usage-card-body {
-    max-height: 300px;
-    overflow-y: auto;
-    padding-right: 5px;
+.chart-footer {
+    font-size: 0.85rem;
+    color: #aaa;
+    margin-top: 10px;
 }
 
-/* Stats UI */
-.stats-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.stats-tab {
-    padding: 7px 12px;
-    background: #444;
-    border: none;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.stats-tab.active {
-    background: #22c55e;
-}
-
-.chart-box {
-    width: 100%;
-    height: 250px;
+/* Ensure canvas takes up available space */
+.chart-card canvas {
+    max-width: 100%;
+    height: auto;
 }
