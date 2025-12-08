@@ -187,8 +187,8 @@ body.fade-in {
 }
 
 .TUP-img {
-  width: 35px;   /* adjust image size */
-  height: 35px;  /* keep proportional */
+  width: 25px;   /* adjust image size */
+  height: 25px;  /* keep proportional */
   margin-right: 10px; /* space between image and text */
   object-fit: contain;
   display: block;
