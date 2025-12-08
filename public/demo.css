@@ -177,6 +177,7 @@ body.fade-in {
   font-weight: 700;
   color: white;
   letter-spacing: 2px;
+  gap: 10px;
 }
 
 .logo-img {
@@ -187,10 +188,10 @@ body.fade-in {
 }
 
 .TUP-img {
-  width: 35px;       /* keep container size same */
-  height: 35px;
+  width: 10px;       /* keep container size same */
+  height: 10px;
   object-fit: contain;
-  transform: scale(0.7);   /* shrink the image visually */
+  transform: scale(0.5);   /* shrink the image visually */
   transform-origin: center; /* keep it centered */
   margin-right: 10px;
   display: block;
