@@ -187,24 +187,12 @@ body.fade-in {
   object-fit: contain;
 }
 
-.tup-wrapper {
-  width: 25px !important;               /* visual size you want */
-  height: 25px !important;
-  overflow: hidden;          /* crop extra space */
-  display: flex;
-  align-items: center;
-  justify-content: center;   /* center the logo inside the container */
-}
-
-.tup-wrapper .TUP-img{
-  width: 100%;
-  height: 100%;
+.TUP-img{
+  width: 35px;   /* adjust image size */
+  height: 35px; 
   object-fit: contain;
   display: block;
 }
-
-
-
 
 nav ul {
   display: flex;
