@@ -38,6 +38,7 @@ body.home-page {
   font-weight: 700;
   color: white;
   letter-spacing: 2px;
+  gap: 2px;
 }
 
 .logo-img {
