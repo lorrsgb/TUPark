@@ -122,6 +122,11 @@ app.get('/admin/reports', checkAuth, (req, res) => res.sendFile(path.join(__dirn
 // ==========================================
 // 6. API ROUTES (POSTGRESQL REWRITE)
 // ==========================================
+// ... (Lines 1 to 142 remain the same) ...
+
+// ==========================================
+// 6. API ROUTES (POSTGRESQL REWRITE)
+// ==========================================
 
 // --- LOGOUT ROUTE ---
 app.get('/logout', (req, res) => {
@@ -143,21 +148,77 @@ app.post('/api/session-timeout', (req, res) => {
 
 // --- NEW API: DAILY OCCUPANCY TRENDS (Last 24 hours/grouped by hour) ---
 app.get('/api/charts/daily', checkAuth, async (req, res) => {
-    // ... PostgreSQL query code ...
+    const sql = `
+        SELECT 
+            TO_CHAR(date_trunc('hour', timestamp), 'HH24') AS hour_label,
+            COUNT(*) FILTER (WHERE action = 'OCCUPY_SPOT') AS occupied_count,
+            COUNT(*) FILTER (WHERE action = 'RELEASE_SPOT') AS released_count
+        FROM activity_logs
+        WHERE timestamp >= NOW() - INTERVAL '24 hours'
+        GROUP BY 1
+        ORDER BY 1;
+    `;
+    try {
+        const result = await pool.query(sql);
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Daily Occupancy Error:", err);
+        res.status(500).json({ message: "Failed to fetch daily chart data." });
+    }
 });
 
 // --- NEW API: WEEKLY OCCUPANCY TRENDS (Last 7 days/grouped by day) ---
 app.get('/api/charts/weekly', checkAuth, async (req, res) => {
-    // ... PostgreSQL query code ...
+    // Calculates the total unique occupancy events per day for the last 7 days.
+    const sql = `
+        SELECT 
+            TO_CHAR(date_trunc('day', timestamp), 'Dy') AS day_label,
+            COUNT(DISTINCT split_part(details, ' at ', 2)) AS occupied_slots_count -- Extracts slot_id from log details
+        FROM activity_logs
+        WHERE timestamp >= NOW() - INTERVAL '7 days' AND action = 'OCCUPY_SPOT'
+        GROUP BY 1
+        ORDER BY MIN(timestamp);
+    `;
+    try {
+        const result = await pool.query(sql);
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Weekly Occupancy Error:", err);
+        res.status(500).json({ message: "Failed to fetch weekly chart data." });
+    }
 });
 
 // --- NEW API: MONTHLY OCCUPANCY TRENDS (Last 12 months) ---
 app.get('/api/charts/monthly', checkAuth, async (req, res) => {
-    // ... PostgreSQL query code ...
+    // Calculates the average unique occupied slots per month over the last 12 months
+    const sql = `
+        WITH MonthlyOccupancy AS (
+            SELECT 
+                DATE_TRUNC('day', timestamp) AS event_day,
+                COUNT(DISTINCT split_part(details, ' at ', 2)) AS occupied_slots_today 
+            FROM activity_logs
+            WHERE action = 'OCCUPY_SPOT' AND timestamp >= NOW() - INTERVAL '12 months'
+            GROUP BY 1
+        )
+        SELECT 
+            TO_CHAR(DATE_TRUNC('month', event_day), 'Mon') AS month_label,
+            CEIL(AVG(occupied_slots_today)) AS average_occupied_slots
+        FROM MonthlyOccupancy
+        GROUP BY 1
+        ORDER BY MIN(event_day);
+    `;
+    try {
+        const result = await pool.query(sql);
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Monthly Occupancy Error:", err);
+        res.status(500).json({ message: "Failed to fetch monthly chart data." });
+    }
 });
 
 // --- LOGIN LOGIC ---
 app.post('/login', async (req, res) => { 
+// ... (Login logic remains the same) ...
     const { adminId, password } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const now = Date.now();
@@ -203,6 +264,7 @@ app.post('/login', async (req, res) => {
 
 // --- GET PARKING SPOTS ---
 app.get('/api/spots', async (req, res) => { 
+// ... (Get spots logic remains the same) ...
     try {
         const result = await pool.query('SELECT * FROM slots');
         res.json(result.rows);
@@ -213,6 +275,7 @@ app.get('/api/spots', async (req, res) => {
 
 // --- GET ACTIVITY LOGS ---
 app.get('/api/logs', checkAuth, async (req, res) => { 
+// ... (Get logs logic remains the same) ...
     try {
         const result = await pool.query('SELECT * FROM activity_logs ORDER BY timestamp DESC');
         res.json(result.rows);
@@ -223,6 +286,7 @@ app.get('/api/logs', checkAuth, async (req, res) => {
 
 // --- UPDATE SPOT ---
 app.post('/api/update-spot', async (req, res) => { 
+// ... (Update spot logic remains the same) ...
     const { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
     const currentUser = req.session.username || 'Unknown Admin'; 
 
@@ -259,6 +323,7 @@ app.post('/api/update-spot', async (req, res) => {
 
 // --- USER REPORT SUBMISSION ---
 app.post('/api/submit-report', async (req, res) => { 
+// ... (User report submission logic remains the same) ...
     const { category, description, name, plate, slot_id } = req.body; 
     
     // Check for all required fields including slot_id
@@ -289,6 +354,7 @@ app.post('/api/submit-report', async (req, res) => {
 
 // --- ADMIN REPORT ACTIONS ---
 app.get('/api/admin/reports', checkAuth, async (req, res) => { 
+// ... (Admin report actions logic remains the same) ...
     try {
         // SELECT * will now include the new slot_number column
         const result = await pool.query('SELECT * FROM problem_reports ORDER BY report_date DESC');
