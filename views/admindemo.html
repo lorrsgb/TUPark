@@ -645,24 +645,17 @@ fetchAndRenderSpots('none');
 window.addEventListener("load", () => document.body.classList.add("fade-in"));
 
 // --- LOGS LOGIC ---
-const usageModal = document.getElementById("usage-modal");
-let usageChart = null; // Global variable to hold the Chart.js instance
+const logsModal = document.getElementById('logs-modal');
+const logsList = document.getElementById('logs-list');
 
-function openLogsModal() { // Keep the function name as 'openLogsModal' since the HTML calls it
-    usageModal.classList.add("show-modal");
-    // Initial load, default to daily. (Function defined in script.js)
-    loadUsageStatistics("daily"); 
-    
-    // Set the initial active tab class
-    document.querySelectorAll(".stats-tab").forEach(b => b.classList.remove("active"));
-    document.querySelector('.stats-tab[data-range="daily"]').classList.add("active");
+function openLogsModal() {
+    logsModal.classList.add('show-modal');
+    fetchLogs();
 }
-function closeUsageModal() {
-    usageModal.classList.remove("show-modal");
+
+function closeLogsModal() {
+    logsModal.classList.remove('show-modal');
 }
-window.addEventListener("click", e => {
-    if (e.target === usageModal) closeUsageModal();
-});
 
 async function fetchLogs() {
     try {
