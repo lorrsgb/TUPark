@@ -186,19 +186,16 @@ body.fade-in {
   object-fit: contain;
 }
 
-.tup-wrapper {
-  width: 20px;       /* desired visual size */
-  height: 20px;
-  overflow: hidden;  /* crops extra space */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.TUP-img {
+  width: 35px;       /* keep container size same */
+  height: 35px;
+  object-fit: contain;
+  transform: scale(0.7);   /* shrink the image visually */
+  transform-origin: center; /* keep it centered */
+  margin-right: 10px;
+  display: block;
 }
 
-.TUP-img {
-  width: auto;       /* keep aspect ratio */
-  height: 100%;      /* scale to container */
-}
 
 nav ul {
   display: flex;
