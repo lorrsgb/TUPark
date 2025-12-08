@@ -141,6 +141,21 @@ app.post('/api/session-timeout', (req, res) => {
     req.session.destroy(() => { res.json({ success: true }); });
 });
 
+// --- NEW API: DAILY OCCUPANCY TRENDS (Last 24 hours/grouped by hour) ---
+app.get('/api/charts/daily', checkAuth, async (req, res) => {
+    // ... PostgreSQL query code ...
+});
+
+// --- NEW API: WEEKLY OCCUPANCY TRENDS (Last 7 days/grouped by day) ---
+app.get('/api/charts/weekly', checkAuth, async (req, res) => {
+    // ... PostgreSQL query code ...
+});
+
+// --- NEW API: MONTHLY OCCUPANCY TRENDS (Last 12 months) ---
+app.get('/api/charts/monthly', checkAuth, async (req, res) => {
+    // ... PostgreSQL query code ...
+});
+
 // --- LOGIN LOGIC ---
 app.post('/login', async (req, res) => { 
     const { adminId, password } = req.body;
