@@ -50,7 +50,7 @@ body.home-page {
 .tup-logo {
   width: 35px;   /* adjust image size */
   height: 35px;  /* keep proportional */
-  margin-right: 10px; /* space between image and text */
+  margin-right: 5px; /* space between image and text */
   object-fit: contain;
 }
 
