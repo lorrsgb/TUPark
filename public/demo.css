@@ -180,16 +180,10 @@ body.fade-in {
   gap: 10px;
 }
 
-.logo-img {
+.logo-img .TUP-img {
   width: 35px;   /* adjust image size */
   height: 35px;  /* keep proportional */
   margin-right: 10px; /* space between image and text */
-  object-fit: contain;
-}
-
-.TUP-img{
-  width: 35px;   /* adjust image size */
-  height: 35px; 
   object-fit: contain;
   display: block;
 }
