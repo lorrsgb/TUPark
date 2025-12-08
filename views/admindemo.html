@@ -472,30 +472,30 @@ function handleSpotClick(spotData) {
   modal.classList.add('show-modal');
 }
 
-function occupySpot(spotId) { 
-  const vehicleInput = document.getElementById(vehicle-input-${spotId}); 
-  const typeInput = document.getElementById(vehicle-type-input-${spotId}); 
+function occupySpot(spotId) {
+  const vehicleInput = document.getElementById(`vehicle-input-${spotId}`);
+  const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
   
-  // Clean inputs 
-  const vehicleNo = vehicleInput.value.trim().toUpperCase(); 
+  // Clean inputs
+  const vehicleNo = vehicleInput.value.trim().toUpperCase();
   const vehicleType = typeInput.value; 
-  
-  if (vehicleNo === "") {       
-    alert("Plate number cannot be empty. Please enter a value.");       
-    vehicleInput.focus();       
-    return;   
-  }   
-  
-  // 2. Check for length constraints
-  if (vehicleNo.length !== 6 && vehicleNo.length !== 7) {       
-    alert("Plate number must be between 6 and 7 characters.");       
-    vehicleInput.focus();       
-    return;   
-  }   
-  
-  // 3. Check for valid characters (using the same regex as the HTML pattern, but stricter)
-  // The regex: /^[A-Z0-9\s-]{3,10}$/ ensures it only contains uppercase letters, numbers, spaces, or hyphens.
-  if (!/^[A-Z0-9\s-]{3,10}$/.test(vehicleNo)) {
+
+  if (vehicleNo === "") {
+      alert("Plate number cannot be empty. Please enter a value.");
+      vehicleInput.focus();
+      return; 
+  }
+
+  // 2. Check for length constraints
+  if (vehicleNo.length < 7 || vehicleNo.length > 8) {
+      alert("Plate number must be between 6 and 7 characters.");
+      vehicleInput.focus();
+      return;
+  }
+
+  // 3. Check for valid characters (using the same regex as the HTML pattern, but stricter)
+  // The regex: /^[A-Z0-9\s-]{3,10}$/ ensures it only contains uppercase letters, numbers, spaces, or hyphens.
+  if (!/^[A-Z0-9\s-]{3,10}$/.test(vehicleNo)) {
       alert("Invalid plate number format. Only letters, numbers, spaces, or hyphens are allowed.");
       vehicleInput.focus();
       return;
@@ -700,12 +700,6 @@ setInterval(() => {
 // 7. CHART.JS IMPLEMENTATION LOGIC 📊
 // ==========================================
 
-// ... (Lines 1 to ~580 remain the same) ...
-
-// ==========================================
-// 7. CHART.JS IMPLEMENTATION LOGIC 📊
-// ==========================================
-
 let dailyChart, weeklyChart, monthlyChart;
 const TOTAL_SPOTS = 85; // **IMPORTANT: ADJUST THIS TO YOUR ACTUAL TOTAL NUMBER OF PARKING SPOTS**
 
@@ -773,10 +767,7 @@ async function initializeCharts() {
                     beginAtZero: true,
                     title: { display: true, text: 'Number of Spots' },
                     max: TOTAL_SPOTS + 5,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: {
-                        stepSize: 5 // *** MODIFIED: Forces y-axis to increment by 5 ***
-                    }
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
                 },
                 x: { grid: { display: false } }
             },
@@ -808,10 +799,7 @@ async function initializeCharts() {
                     beginAtZero: true,
                     title: { display: true, text: 'Number of Spots' },
                     max: TOTAL_SPOTS + 5,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: {
-                        stepSize: 5 // *** ADDED: Forces y-axis to increment by 5 ***
-                    }
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
                 },
                 x: { grid: { display: false } }
             },
@@ -825,12 +813,13 @@ async function initializeCharts() {
     // --- Monthly Chart (LINE CHART for trend) ---
     const monthlyCtx = document.getElementById('monthlyOccupancyChart').getContext('2d');
     monthlyChart = new Chart(monthlyCtx, {
-        type: 'line',
+        type: 'line', // CHANGED FROM 'doughnut'
         data: {
             labels: monthlyLabels,
             datasets: [{
                 label: 'Avg. Occupied Slots',
                 data: monthlyAvgOccupied,
+                // Using line colors appropriate for trends
                 backgroundColor: 'rgba(255, 159, 64, 0.2)', // Orange/Yellow fill
                 borderColor: '#ff9f40', // Orange line
                 pointBackgroundColor: '#ff9f40',
@@ -850,10 +839,7 @@ async function initializeCharts() {
                     beginAtZero: true,
                     title: { display: true, text: 'Avg. Occupied Slots' },
                     max: TOTAL_SPOTS + 5,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: {
-                        stepSize: 5 // *** ADDED: Forces y-axis to increment by 5 ***
-                    }
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
                 },
                 x: { grid: { display: false } }
             },
