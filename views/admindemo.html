@@ -472,7 +472,7 @@ function handleSpotClick(spotData) {
   modal.classList.add('show-modal');
 }
 
-<<<<<<< HEAD
+HEAD
 function occupySpot(spotId) { 
   const vehicleInput = document.getElementById(`vehicle-input-${spotId}`); 
   const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
@@ -503,7 +503,7 @@ function occupySpot(spotId) {
   // 3. Check for valid characters in the raw input
   // The regex /^[A-Z0-9\s-]*$/ ensures ONLY valid characters were used (letters, numbers, spaces, or hyphens).
   if (!/^[A-Z0-9\s-]*$/.test(vehicleNoRaw)) {
-=======
+
 function occupySpot(spotId) {
   const vehicleInput = document.getElementById(`vehicle-input-${spotId}`);
   const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
@@ -528,7 +528,7 @@ function occupySpot(spotId) {
   // 3. Check for valid characters (using the same regex as the HTML pattern, but stricter)
   // The regex: /^[A-Z0-9\s-]{3,10}$/ ensures it only contains uppercase letters, numbers, spaces, or hyphens.
   if (!/^[A-Z0-9\s-]{3,10}$/.test(vehicleNo)) {
->>>>>>> 64d3f3186f25c03b51630273b1de7c39f252e305
+
       alert("Invalid plate number format. Only letters, numbers, spaces, or hyphens are allowed.");
       vehicleInput.focus();
       return;
