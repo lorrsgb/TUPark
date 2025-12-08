@@ -186,6 +186,12 @@ body.fade-in {
   object-fit: contain;
 }
 
+img[src*="TUPLogo.png"] {
+    width: 200px;
+    height: auto;
+}
+
+
 
 nav ul {
   display: flex;
