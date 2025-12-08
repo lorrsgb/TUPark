@@ -187,12 +187,10 @@ body.fade-in {
 }
 
 .TUP-img {
-    width: 50vw; /* e.g., 50% of the viewport width */
-    max-width: 600px;
-    height: auto;
-    display: block;
-    margin: 50px auto 0; /* Center it horizontally */
-    opacity: 0.2; /* Make it subtle, like a watermark */
+  width: 35px;   /* adjust image size */
+  height: 35px;  /* keep proportional */
+  margin-right: 10px; /* space between image and text */
+  object-fit: contain;
 }
 
 
