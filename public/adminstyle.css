@@ -456,7 +456,7 @@ nav ul li a:hover {
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    /* MODIFIED: Reduced min-height to allow stacking */
+    /* MODIFIED: Reduced min-height to fix overlap */
     min-height: 300px; 
 }
 
@@ -477,6 +477,7 @@ nav ul li a:hover {
 /* Ensure canvas takes up available space */
 .chart-card canvas {
     max-width: 100%;
-    /* MODIFIED: Fixed height for the canvas to prevent overlap */
-    height: 250px; 
+    /* Set max height to prevent chart from stretching too much */
+    max-height: 250px; 
+    height: auto;
 }
