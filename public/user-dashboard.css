@@ -52,6 +52,7 @@ body.home-page {
   width: 35px;   /* adjust image size */
   height: 35px;  /* keep proportional */
   margin-right: 5px; /* space between image and text */
+  margin-top: 5px;
   object-fit: contain;
 }
 
