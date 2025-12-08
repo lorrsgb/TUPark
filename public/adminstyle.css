@@ -143,7 +143,6 @@
 }
 
 /* Remaining original CSS styles here */
-/* ... (Your existing CSS goes below this line) ... */
 * {
   margin: 0;
   padding: 0;
@@ -449,8 +448,6 @@ nav ul li a:hover {
     padding-top: 15px;
     overflow-y: auto; /* Scrollable grid container */
 }
-
-/* Removed media query because single column is now the default */
 
 .chart-card {
     background: rgba(40, 40, 40, 0.7); /* Slightly lighter background inside the modal */
