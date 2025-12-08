@@ -178,12 +178,21 @@ body.fade-in {
   font-weight: 700;
   color: white;
   letter-spacing: 2px;
+  gap: 2px;
 }
 
 .logo-img {
   width: 35px;   /* adjust image size */
   height: 35px;  /* keep proportional */
-  margin-right: 10px; /* space between image and text */
+  margin-right: 5px; /* space between image and text */
+  object-fit: contain;
+}
+
+.tup-logo {
+  width: 35px;   /* adjust image size */
+  height: 35px;  /* keep proportional */
+  margin-right: 5px; /* space between image and text */
+  margin-top: 5px;
   object-fit: contain;
 }
 
