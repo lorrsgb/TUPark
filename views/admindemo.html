@@ -173,7 +173,7 @@
 // ==========================================
 // 1. CONFIGURATION
 // ==========================================
-// ... (The rest of Section 1 through Section 6 remains the same) ...
+// ... (The rest of Section 1 remains the same) ...
 const locationSelect = document.getElementById('park-location');
 const mapImage = document.getElementById('map-image');
 const resetButton = document.getElementById('reset-filter');
@@ -207,7 +207,7 @@ const buildingSpotSizes = {
 };
 
 // ==========================================
-// 2. COORDINATES (Paste your full list!)
+// 2. COORDINATES 
 // ==========================================
 const parkingSpots = {
   none: [],
@@ -481,25 +481,25 @@ function occupySpot(spotId) {
   const vehicleType = typeInput.value; 
 
   if (vehicleNo === "") {
-      alert("Plate number cannot be empty. Please enter a value.");
-      vehicleInput.focus();
-      return; 
-  }
+    alert("Plate number cannot be empty. Please enter a value.");
+    vehicleInput.focus();
+    return; 
+  }
 
-  // 2. Check for length constraints
-  if (vehicleNo.length < 7 || vehicleNo.length > 8) {
-      alert("Plate number must be between 6 and 7 characters.");
-      vehicleInput.focus();
-      return;
-  }
+  // 2. Check for length constraints
+  if (vehicleNo.length < 7 || vehicleNo.length > 8) {
+    alert("Plate number must be between 6 and 7 characters.");
+    vehicleInput.focus();
+    return;
+  }
 
-  // 3. Check for valid characters (using the same regex as the HTML pattern, but stricter)
-  // The regex: /^[A-Z0-9\s-]{3,10}$/ ensures it only contains uppercase letters, numbers, spaces, or hyphens.
-  if (!/^[A-Z0-9\s-]{3,10}$/.test(vehicleNo)) {
-      alert("Invalid plate number format. Only letters, numbers, spaces, or hyphens are allowed.");
-      vehicleInput.focus();
-      return;
-  }
+  // 3. Check for valid characters (using the same regex as the HTML pattern, but stricter)
+  // The regex: /^[A-Z0-9\s-]{3,10}$/ ensures it only contains uppercase letters, numbers, spaces, or hyphens.
+  if (!/^[A-Z0-9\s-]{3,10}$/.test(vehicleNo)) {
+    alert("Invalid plate number format. Only letters, numbers, spaces, or hyphens are allowed.");
+    vehicleInput.focus();
+    return;
+  }
 
   // Get Local Time
   const now = new Date();
@@ -662,7 +662,6 @@ function closeChartsModal() {
 
 // ==========================================
 // 6. AUTO SESSION TIMEOUT (Idle Detection)
-// ... (Section 6 remains the same) ...
 // ==========================================
 let idleTime = 0;
 
@@ -695,12 +694,6 @@ setInterval(() => {
     idleTime += 1000; // Add 1 second to counter
 }, 1000);
 
-
-// ==========================================
-// 7. CHART.JS IMPLEMENTATION LOGIC 📊
-// ==========================================
-
-// ... (Lines 1 to ~580 remain the same) ...
 
 // ==========================================
 // 7. CHART.JS IMPLEMENTATION LOGIC 📊
@@ -775,7 +768,7 @@ async function initializeCharts() {
                     max: TOTAL_SPOTS + 5,
                     grid: { color: 'rgba(255, 255, 255, 0.1)' },
                     ticks: {
-                        stepSize: 5 // *** MODIFIED: Forces y-axis to increment by 5 ***
+                        stepSize: 5 
                     }
                 },
                 x: { grid: { display: false } }
@@ -810,7 +803,7 @@ async function initializeCharts() {
                     max: TOTAL_SPOTS + 5,
                     grid: { color: 'rgba(255, 255, 255, 0.1)' },
                     ticks: {
-                        stepSize: 5 // *** ADDED: Forces y-axis to increment by 5 ***
+                        stepSize: 5 
                     }
                 },
                 x: { grid: { display: false } }
@@ -852,7 +845,7 @@ async function initializeCharts() {
                     max: TOTAL_SPOTS + 5,
                     grid: { color: 'rgba(255, 255, 255, 0.1)' },
                     ticks: {
-                        stepSize: 5 // *** ADDED: Forces y-axis to increment by 5 ***
+                        stepSize: 5
                     }
                 },
                 x: { grid: { display: false } }
@@ -864,8 +857,6 @@ async function initializeCharts() {
         }
     });
 }
-
-// Call the function when the page loads to display the charts.
 // Note: initializeCharts is now only called when the charts modal is opened.
 // window.addEventListener('load', initializeCharts); 
 
