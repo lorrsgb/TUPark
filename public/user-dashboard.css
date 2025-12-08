@@ -44,7 +44,7 @@ body.home-page {
   width: 35px;   /* adjust image size */
   height: 35px;  /* keep proportional */
   margin-right: 10px; /* space between image and text */
-  padding-left: 2px;
+  padding-right: 2px;
   object-fit: contain;
 }
 
@@ -52,6 +52,7 @@ body.home-page {
   width: 35px;   /* adjust image size */
   height: 35px;  /* keep proportional */
   margin-right: 5px; /* space between image and text */
+  padding-left: 2px;
   object-fit: contain;
 }
 
