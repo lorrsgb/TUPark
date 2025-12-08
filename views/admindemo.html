@@ -700,6 +700,12 @@ setInterval(() => {
 // 7. CHART.JS IMPLEMENTATION LOGIC 📊
 // ==========================================
 
+// ... (Lines 1 to ~580 remain the same) ...
+
+// ==========================================
+// 7. CHART.JS IMPLEMENTATION LOGIC 📊
+// ==========================================
+
 let dailyChart, weeklyChart, monthlyChart;
 const TOTAL_SPOTS = 85; // **IMPORTANT: ADJUST THIS TO YOUR ACTUAL TOTAL NUMBER OF PARKING SPOTS**
 
@@ -737,7 +743,6 @@ async function initializeCharts() {
 
     // 4. Prepare Monthly Data
     const monthlyLabels = monthlyDataRaw.map(d => d.month_label);
-    // Use average occupied slots for the monthly chart
     const monthlyAvgOccupied = monthlyDataRaw.map(d => parseInt(d.average_occupied_slots, 10));
 
     // --- Daily Chart (Line) ---
@@ -811,35 +816,41 @@ async function initializeCharts() {
         }
     });
 
-    // --- Monthly Chart (Doughnut) ---
+    // --- Monthly Chart (LINE CHART for trend) ---
     const monthlyCtx = document.getElementById('monthlyOccupancyChart').getContext('2d');
     monthlyChart = new Chart(monthlyCtx, {
-        type: 'doughnut',
+        type: 'line', // CHANGED FROM 'doughnut'
         data: {
             labels: monthlyLabels,
             datasets: [{
-                label: 'Monthly Average Occupied Slots',
+                label: 'Avg. Occupied Slots',
                 data: monthlyAvgOccupied,
-                backgroundColor: [
-                    '#007bff', '#22c55e', '#ef4444', '#f59e0b', '#a855f7', '#ec4899', '#14b8a6', '#f97316', '#84cc16', '#3b82f6', '#d946ef', '#f43f5e'
-                ],
-                hoverOffset: 4
+                // Using line colors appropriate for trends
+                backgroundColor: 'rgba(255, 159, 64, 0.2)', // Orange/Yellow fill
+                borderColor: '#ff9f40', // Orange line
+                pointBackgroundColor: '#ff9f40',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#ff9f40',
+                borderWidth: 2,
+                tension: 0.3, // Smoother line
+                fill: true,
             }]
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { position: 'bottom', labels: { color: 'white' } },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.label || '';
-                            if (label) { label += ': '; }
-                            if (context.parsed !== null) { label += context.parsed + ' Slots'; }
-                            return label;
-                        }
-                    }
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Avg. Occupied Slots' },
+                    max: TOTAL_SPOTS + 5,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
                 },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { display: false },
                 title: { display: false }
             }
         }
