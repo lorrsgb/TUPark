@@ -248,24 +248,6 @@ const modalTitle = document.getElementById('modal-title');
 const modalBody = document.getElementById('modal-body');
 const usageModal = document.getElementById("usage-modal");
 
-function openUsageSection() {
-
-    document.getElementById("activityLogsModal").classList.add("show-modal");
-    document.getElementById("usage-modal").classList.add("show-modal");
-
-    loadUsageStatistics("daily");
-    fetchActivityLogs();
-}
-
-function closeUsageSection() {
-    document.getElementById("activityLogsModal").classList.remove("show-modal");
-    document.getElementById("usage-modal").classList.remove("show-modal");
-}
-
-
-window.addEventListener("click", e => {
-    if (e.target === usageModal) closeUsageModal();
-});
 
 const mapImages = {
   none: '2.png',
@@ -621,6 +603,18 @@ function releaseSpot(spotId) {
 
 window.onclick = (e) => { if (e.target === modal) closeModal(); }
 
+function openUsageSection() {
+    document.getElementById("activityLogsModal").classList.add("show-modal");
+    document.getElementById("usage-modal").classList.add("show-modal");
+
+    loadUsageStatistics("daily");
+    fetchActivityLogs();
+}
+
+function closeUsageSection() {
+    document.getElementById("activityLogsModal").classList.remove("show-modal");
+    document.getElementById("usage-modal").classList.remove("show-modal");
+}
 // ==========================================
 // 5. EVENT LISTENERS
 // ==========================================
