@@ -443,23 +443,21 @@ nav ul li a:hover {
 .chart-grid {
     flex: 1; /* Allow the grid to take up space */
     display: grid;
-    /* *** MODIFIED: Now using single column for vertical stacking *** */
+    /* MODIFIED: Stacking vertically */
     grid-template-columns: 1fr; 
     gap: 20px;
     padding-top: 15px;
-    overflow-y: auto; /* Add scroll for the charts if they don't fit vertically */
+    overflow-y: auto; /* Scrollable grid container */
 }
 
-/* Removed media query because single column is now the default */
-
 .chart-card {
-    background: rgba(40, 40, 40, 0.7); /* Slightly lighter background inside the modal */
+    background: rgba(40, 40, 40, 0.7);
     padding: 20px;
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    /* Reduced min-height since the cards are now stacked */
-    min-height: 350px; 
+    /* MODIFIED: Reduced min-height to fix overlap */
+    min-height: 300px; 
 }
 
 .chart-card h3 {
@@ -479,5 +477,7 @@ nav ul li a:hover {
 /* Ensure canvas takes up available space */
 .chart-card canvas {
     max-width: 100%;
+    /* Set max height to prevent chart from stretching too much */
+    max-height: 250px; 
     height: auto;
 }
