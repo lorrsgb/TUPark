@@ -142,13 +142,18 @@ nav ul li a:hover {
     text-decoration: none;
     background-color: #4285F4; /* Google Blue */
     color: white;
-    padding: 12px 25px;
-    border-radius: 5px;
+    
+    /* MODIFICATION 1: Make it smaller by reducing padding */
+    padding: 10px 20px; /* Reduced from 12px 25px */
+    
+    /* MODIFICATION 2: Make it rounder */
+    border-radius: 20px; /* Increased from 5px to 20px for a pill/rounder shape */
+    
     font-size: 1rem;
     font-weight: 600;
     transition: background-color 0.3s;
-    width: 80%; 
-    max-width: 300px;
+    /* Optional: Reduced the explicit width for a tighter fit */
+    max-width: 250px; /* Reduced from 300px to make it smaller overall */
 }
 
 .google-login-btn:hover {
