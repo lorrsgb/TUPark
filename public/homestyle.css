@@ -6,15 +6,23 @@
   font-family: 'Poppins', sans-serif;
 }
 
+/* Base Body Style for Background and Initial Setup */
 body.home-page {
-    content: "";
-  position: center;
-  inset: 0;
+  position: relative;
   background: url('bg-home.png') center/cover no-repeat; 
   z-index: 0;
-  height:100vh
-   
+  height: 100vh;
+  width: 100vw;
+  /* REVERTED: Changed alignment to place content on the side */
+  display: flex;
+  align-items: center; /* Center vertically */
+  justify-content: flex-start; /* Move content to the left edge */
+  padding-left: 15vw; /* ADDED: Padding to push content away from the edge */
+  padding-top: 80px; /* Keep padding-top to account for the fixed navbar height */
+  color: white;
+  overflow: hidden; /* prevent scrolling issues */
 }
+
 
 /* Navbar */
 .navbar {
@@ -70,50 +78,55 @@ nav ul li a:hover {
   color: #007bff;
 }
 
-/* Hero Section */
-.home-page {
-    position: relative;
-  height: 100vh;
-  background:  url('bg-home.png');
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding-left: 200px;
-  padding-top: 80px; /* 👈 adds space below navbar */
-  color: white;
-  overflow: hidden; /* prevent scrolling issues */
-
-}
-
-
-
+/* Front Content / Login Container */
 .Front-content {
   position: relative;
   z-index: 2;
-  text-align: left;
-  max-width: 600px;
+  /* MODIFIED: Left-align the overall text block for a professional card look */
+  text-align: left; 
+  /* Adjusted max-width to control the overall width of the form elements */
+  max-width: 400px; 
+  padding: 40px 20px;
+  background: rgba(0, 0, 0, 0.7); 
+  border-radius: 10px;
+  /* Ensure the block is aligned to the left side when flex-start is used above */
+  margin: 0;
 }
 
-.Front-content h1 {
-  font-size: 4rem;
-  font-family: Arial;
-  font-weight: 1000;
-  line-height: 1;
-  color: #ffffff;
-  margin-bottom: 10px; 
-  letter-spacing: 3px;
-
+/* Re-align card contents back to center *within the card* for better layout */
+.Front-content h2 {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 60px;
-  flex-wrap: wrap;
-  padding: 0 40px;
+.Front-content p {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.Front-content h2 {
+  font-size: 3rem; 
+  font-weight: 800;
+  line-height: 1.2;
+  color: #007bff; 
+  margin-bottom: 5px; 
+}
+
+/* Sub-text proportion fixed */
+.Front-content p {
+  font-size: 1rem;
+  line-height: 1.4; 
+  color: #ddd;
+  margin: 0 0 25px 0; 
+}
+
+/* Form Styles */
+.Front-content form {
+    /* Use max-width here to ensure the form itself doesn't stretch the container */
+    max-width: 300px; 
+    margin: 0 auto; /* Center the form block within Front-content */
 }
 
 label {
@@ -121,10 +134,12 @@ label {
   margin-bottom: 5px;
   font-size: 0.9rem;
   color: #ddd;
+  text-align: left; 
 }
 
+/* Shorter Input Bars */
 input {
-  width: 100%;
+  width: 100%; 
   padding: 10px;
   margin-bottom: 20px;
   border: none;
@@ -134,6 +149,7 @@ input {
   font-size: 0.90rem;
 }
 
+/* LOG IN BUTTON CENTERING MODIFICATION */
 .login-btn {
   background: #555;
   border: none;
@@ -144,7 +160,13 @@ input {
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
-  margin-top: 5px;
+  margin-top: 25px; 
+  
+  /* === NEW CENTERING STYLES === */
+  display: block; /* Important: Make the button a block element to accept margins */
+  margin-left: auto;
+  margin-right: auto;
+  /* ============================ */
 }
 
 .login-btn:hover {
@@ -180,5 +202,3 @@ body.fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
-

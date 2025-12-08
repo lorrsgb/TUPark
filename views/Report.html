@@ -43,11 +43,12 @@
             white-space: nowrap; /* Prevent text from stacking */
         }
         
-        /* Bottom Row: Delete Button */
+        /* FIX: Ensure delete button container spans full width for centering */
         .delete-container {
             display: flex;
             justify-content: center; /* Center horizontally */
-            margin-bottom: 25px;     /* Space between button and form */
+            margin-bottom: 25px;      /* Space between button and form */
+            width: 100%; /* Ensure it spans the full width of its parent */
         }
 
         .delete-btn {
@@ -68,33 +69,36 @@
             cursor: not-allowed;
             opacity: 0.5;
         }
+        
+        /* NEW STYLE: Make the Reporter Name span two columns (full width) */
+        .full-width {
+            grid-column: 1 / -1; 
+        }
     </style>
 </head>
 <body>
 
-  <header class="navbar">
-    <div class="logo"> 
-      <span>TUPark</span>
-      <img src="/image/TUPARK.png" alt="Logo" class="logo-img">
-    </div> 
-    <nav>
-      <ul>
-        <li><a href="/admin">Home</a></li>
-      </ul>
-    </nav>
-  </header>
+    <header class="navbar">
+        <div class="logo"> 
+            <span>TUPark</span>
+            <img src="/image/TUPARK.png" alt="Logo" class="logo-img">
+        </div> 
+        <nav>
+            <ul>
+                <li><a href="/admin">Home</a></li>
+            </ul>
+        </nav>
+    </header>
 
     <main class="report-container">
         <div class="problem-report">
             
-            <!-- ROW 1: Navigation Controls -->
             <div class="nav-controls">
                 <button id="prev-btn" class="nav-btn" onclick="changeReport(-1)">&#8592; Previous</button>
                 <span class="counter">Report <span id="current-index">0</span> of <span id="total-count">0</span></span>
                 <button id="next-btn" class="nav-btn" onclick="changeReport(1)">Next &#8594;</button>
             </div>
 
-            <!-- ROW 2: Delete Button (Centered) -->
             <div class="delete-container">
                 <button id="delete-btn" class="delete-btn" onclick="deleteCurrentReport()">Delete Report</button>
             </div>
@@ -102,7 +106,7 @@
             <div class="header-section">
                 <label style="color:white; margin-bottom:5px; display:block;">Description:</label>
                 <div class="large-display-area" id="desc-box">
-                  Loading reports...
+                    Loading reports...
                 </div>
             </div>
 
@@ -119,13 +123,18 @@
                 </div>
 
                 <div class="report-group">
-                    <label>Reporter Name:</label>
-                    <div class="display-box" id="name-box">-</div>
+                    <label>Vehicle Plate Number:</label>
+                    <div class="display-box" id="plate-box">-</div>
                 </div>
                 
                 <div class="report-group">
-                    <label>Vehicle Plate Number:</label>
-                    <div class="display-box" id="plate-box">-</div>
+                    <label>Reported Slot ID:</label>
+                    <div class="display-box" id="slot-box">-</div> 
+                </div>
+
+                <div class="report-group full-width">
+                    <label>Reporter Name:</label>
+                    <div class="display-box" id="name-box">-</div>
                 </div>
 
             </div>
@@ -167,6 +176,8 @@
             document.getElementById('cat-box').innerText = report.category;
             document.getElementById('name-box').innerText = report.reporter_name;
             document.getElementById('plate-box').innerText = report.plate_number;
+            // Render the slot ID
+            document.getElementById('slot-box').innerText = report.slot_number || 'N/A'; // Use slot_number assuming API provides it
 
             const dateObj = new Date(report.report_date);
             document.getElementById('date-box').innerText = dateObj.toLocaleString();
@@ -184,6 +195,7 @@
             document.getElementById('date-box').innerText = "-";
             document.getElementById('name-box').innerText = "-";
             document.getElementById('plate-box').innerText = "-";
+            document.getElementById('slot-box').innerText = "-"; // Reset slot box
             
             document.getElementById('current-index').innerText = "0";
             document.getElementById('total-count').innerText = "0";
@@ -233,6 +245,10 @@
                 }
             }
         }
+        
+        // Make functions globally accessible (for inline onclick)
+        window.changeReport = changeReport;
+        window.deleteCurrentReport = deleteCurrentReport;
 
         // Initialize
         fetchReports();
