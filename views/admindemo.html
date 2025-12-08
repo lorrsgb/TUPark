@@ -472,6 +472,38 @@ function handleSpotClick(spotData) {
   modal.classList.add('show-modal');
 }
 
+<<<<<<< HEAD
+function occupySpot(spotId) { 
+  const vehicleInput = document.getElementById(`vehicle-input-${spotId}`); 
+  const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
+  
+// 1. Get raw input and strip whitespace/hyphens for length check
+  const vehicleNoRaw = vehicleInput.value.trim().toUpperCase(); 
+  const vehicleType = typeInput.value;
+    
+    // Create a version without spaces and hyphens for the strict length check
+    const strippedVehicleNo = vehicleNoRaw.replace(/[\s-]/g, '');
+
+  // 🛑 START VALIDATION 🛑
+  // 1. Check if the field is empty (even after stripping)
+  if (strippedVehicleNo === "") {       
+    alert("Plate number cannot be empty. Please enter a value.");       
+    vehicleInput.focus();       
+    return;   
+  }   
+  
+  // 2. Check for strict length of 7 or 8 (using the stripped version)
+  const plateLength = strippedVehicleNo.length;
+  if (plateLength !== 7 && plateLength !== 8) {       
+    alert(`Plate number must be strictly 7 or 8 characters long (excluding spaces/hyphens). Yours has ${plateLength}.`);       
+    vehicleInput.focus();       
+    return;   
+  }   
+  
+  // 3. Check for valid characters in the raw input
+  // The regex /^[A-Z0-9\s-]*$/ ensures ONLY valid characters were used (letters, numbers, spaces, or hyphens).
+  if (!/^[A-Z0-9\s-]*$/.test(vehicleNoRaw)) {
+=======
 function occupySpot(spotId) {
   const vehicleInput = document.getElementById(`vehicle-input-${spotId}`);
   const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
@@ -496,10 +528,13 @@ function occupySpot(spotId) {
   // 3. Check for valid characters (using the same regex as the HTML pattern, but stricter)
   // The regex: /^[A-Z0-9\s-]{3,10}$/ ensures it only contains uppercase letters, numbers, spaces, or hyphens.
   if (!/^[A-Z0-9\s-]{3,10}$/.test(vehicleNo)) {
+>>>>>>> 64d3f3186f25c03b51630273b1de7c39f252e305
       alert("Invalid plate number format. Only letters, numbers, spaces, or hyphens are allowed.");
       vehicleInput.focus();
       return;
   }
+
+  const finalPlateNumber = strippedVehicleNo;
 
   // Get Local Time
   const now = new Date();
@@ -517,7 +552,7 @@ function occupySpot(spotId) {
       body: JSON.stringify({ 
           slot_id: spotId, 
           status: 'occupied', 
-          plate_number: vehicleNo, 
+          plate_number: finalPlateNumber, 
           park_time: time,
           vehicle_type: vehicleType 
       })
