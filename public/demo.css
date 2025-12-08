@@ -195,6 +195,7 @@ body.fade-in {
   transform-origin: center; /* keep it centered */
   margin-right: 10px;
   display: block;
+  overflow: hidden;
 }
 
 
