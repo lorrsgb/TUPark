@@ -6,7 +6,7 @@
   <title>Parking Availability - Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/homestyle.css" />
-</head>
+  </head>
 
 <body class="home-page">
 
@@ -24,25 +24,30 @@
     <h2>ADMIN LOG IN</h2>
     <p>Parking Availability monitoring map for the Technological University of the Philippines - Manila</p>
     
+    <div class="manual-login-section">
+        
+        <form id="manual-login-form">
+            <label for="manual-email" style="display: block;">Enter email</label>
+            <input type="email" id="manual-email" placeholder="email@example.com" required style="width: 80%; max-width: 300px; margin-bottom: 15px;">
+
+            <label for="manual-password" style="display: block;">Enter password</label>
+            <input type="password" id="manual-password" placeholder="Password" required style="width: 80%; max-width: 300px; margin-bottom: 25px;">
+
+            <button type="submit" id="manual-login-btn" class="login-btn" style="width: 80%; max-width: 300px; margin-bottom: 20px;">MANUAL LOG IN</button>
+        </form>
+    </div>
+
+    <div class="separator" style="text-align: center; margin: 20px 0; color: #aaa; display: flex; align-items: center; justify-content: center;">
+        <hr style="width: 40px; border: none; border-top: 1px solid #555; margin: 0 10px;">
+        <span>--- OR ---</span>
+        <hr style="width: 40px; border: none; border-top: 1px solid #555; margin: 0 10px;">
+    </div>
+    
     <div class="oauth-container">
         <a href="/auth/google" class="google-login-btn">
             <img src="/google_icon.jpg" alt="Google Icon" class="google-icon">
             LOG IN with Google
         </a>
-    </div>
-
-    <div class="manual-login-section">
-        <hr class="divider">
-        <p class="small-text">— OR LOG IN MANUALLY —</p>
-        <form>
-            <label for="manual-email">Email Address:</label>
-            <input type="email" id="manual-email" required>
-
-            <label for="manual-password">Password:</label>
-            <input type="password" id="manual-password" required>
-
-            <button type="submit" id="manual-login-btn" class="login-btn">MANUAL LOG IN</button>
-        </form>
     </div>
   </div>
 

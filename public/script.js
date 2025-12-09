@@ -1,5 +1,5 @@
 const car = document.getElementById("car");
-const manualLoginBtn = document.getElementById("manual-login-btn");
+const manualLoginForm = document.getElementById("manual-login-form"); // Target the form element
 const emailInput = document.getElementById("manual-email");
 const passInput = document.getElementById("manual-password");
 
@@ -9,7 +9,7 @@ window.addEventListener("load", () => {
 });
 
 // --- MANUAL LOGIN SUBMISSION LOGIC ---
-manualLoginBtn.addEventListener("click", (e) => {
+manualLoginForm.addEventListener("submit", (e) => { // Listen for form submission
   e.preventDefault(); 
 
   const email = emailInput.value;
@@ -55,14 +55,12 @@ manualLoginBtn.addEventListener("click", (e) => {
 
 
 // =====================================
-// LOAD USAGE STATISTICS
+// LOAD USAGE STATISTICS (Retained)
 // =====================================
-let usageChart; // Must be defined globally for destroy/re-initialization
+let usageChart; 
 
 async function loadUsageStatistics(range) {
     try {
-        // NOTE: The endpoint /api/stats and the data structure are assumed to exist
-        // based on the previous version of this function.
         const response = await fetch(`/api/stats?range=${range}`);
         const data = await response.json();
 
@@ -107,7 +105,6 @@ async function loadUsageStatistics(range) {
 
 /* TAB CLICK HANDLERS */
 document.addEventListener("click", e => {
-    // Only proceed if the clicked element has the class 'stats-tab'
     if (!e.target.classList.contains("stats-tab")) return;
 
     document.querySelectorAll(".stats-tab").forEach(b => b.classList.remove("active"));
