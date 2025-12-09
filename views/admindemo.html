@@ -474,55 +474,40 @@ function handleSpotClick(spotData) {
 
 function occupySpot(spotId) { 
   const vehicleInput = document.getElementById(`vehicle-input-${spotId}`); 
-  const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
-  
-// 1. Get raw input and strip whitespace/hyphens for length check
+  const typeInput = document.getElementById(`vehicle-type-input-${spotId}`);
+
   const vehicleNoRaw = vehicleInput.value.trim().toUpperCase(); 
   const vehicleType = typeInput.value;
-    
-    // Create a version without spaces and hyphens for the strict length check
+
+  // Remove spaces/hyphens for strict length check
   const strippedVehicleNo = vehicleNoRaw.replace(/[\s-]/g, '');
 
-  // 🛑 START VALIDATION 🛑
-  // 1. Check if the field is empty (even after stripping)
+  // 1. Empty?
   if (strippedVehicleNo === "") {
-    alert("Plate number cannot be empty. Please enter a value.");
+    alert("Plate number cannot be empty.");
     vehicleInput.focus();
-    return;    
+    return;
   }
 
-  // 2. Check for strict length of 7 or 8 (using the stripped version)
+  // 2. Strict length: 6 or 7
   const plateLength = strippedVehicleNo.length;
-  if (plateLength !== 7 && plateLength !== 8) {
-    alert(`Plate number must be strictly 7 or 8 characters long (excluding spaces/hyphens). Yours has ${plateLength}.`);
+  if (plateLength !== 6 && plateLength !== 7) {
+    alert(`Plate number must be 6 or 7 characters long. Yours has ${plateLength}.`);
     vehicleInput.focus();
     return;
   }
 
-  // 3. Check for valid characters in the raw input
-  // The regex /^[A-Z0-9\s-]*$/ ensures ONLY valid characters were used (letters, numbers, spaces, or hyphens).
-  if (!/^[A-Z0-9\s-]*$/.test(vehicleNoRaw)) {
-    alert("Invalid plate number format. Only letters, numbers, spaces, or hyphens are allowed.");
+  // 3. Regex must match raw input (before stripping)
+  const plateRegex = /^(?:[A-Z]{3}\d{3,4}|[A-Z]{2}\d{4,5}|\d{4,5}[A-Z]{2})$/;
+  if (!vehicleNoRaw || !plateRegex.test(strippedVehicleNo)) {
+    alert("Invalid Plate Number!");
     vehicleInput.focus();
     return;
-}
+  }
 
   const finalPlateNumber = strippedVehicleNo;
 
   // Get PH Time
-  const phTime = new Date(new Date().toLocaleString("en-US", {
-    timeZone: "Asia/Manila"
-  }));
-
-  const nowInPH = new Date();
-
-  const year = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", year: 'numeric' });
-  const month = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", month: '2-digit' });
-  const day = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", day: '2-digit' });
-  const hours = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", hour: '2-digit', hour12: false }).padStart(2, '0');
-  const minutes = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", minute: '2-digit' }).padStart(2, '0');
-  const seconds = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", second: '2-digit' }).padStart(2, '0');
-
   const parkTime = nowInPH.toLocaleString('sv-SE', { 
     timeZone: 'Asia/Manila', 
     year: 'numeric',

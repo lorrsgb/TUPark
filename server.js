@@ -256,14 +256,16 @@ app.get('/api/logs', checkAuth, async (req, res) => {
     }
 });
 
+const plateRegex = /^(?:[A-Z]{3}\d{3,4}|[A-Z]{2}\d{4,5}|\d{4,5}[A-Z]{2})$/;
 // --- UPDATE SPOT ---
 app.post('/api/update-spot', checkAuth, async (req, res) => { 
     const { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
     const currentUser = req.user && req.user.username ? req.user.username : 'Unknown Admin'; 
 
+    plate_number = plate_number.toUpperCase().replace(/[\s-]/g, '');
+
     try {
         if (status === 'occupied') {
-            const plateRegex = /^[A-Z]{3}[- ]?\d{3,4}$/;
             if (!plate_number || !plateRegex.test(plate_number)) return res.json({ success: false, message: "Invalid Plate Number!" });
             if (!['Car', 'Motorcycle', 'Van', 'Others'].includes(vehicle_type)) return res.json({ success: false, message: "Invalid Vehicle Type." });
             
