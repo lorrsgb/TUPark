@@ -520,7 +520,7 @@ function occupySpot(spotId) {
   }).replace(',', '')
 
   const time = parkTime;
-
+  
   fetch('/api/update-spot', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
