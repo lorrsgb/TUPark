@@ -5,14 +5,13 @@ const pgSession = require('connect-pg-simple')(session);
 const { Pool } = require('pg'); 
 const bcrypt = require('bcrypt'); 
 const rateLimit = require('express-rate-limit'); 
-const passport = require('passport'); // NEW: For Google OAuth
-const GoogleStrategy = require('passport-google-oauth20').Strategy; // NEW: Google Strategy
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy; 
 
 const app = express();
 const PORT = process.env.PORT || 3000; 
 
 // --- GOOGLE OAUTH CONFIGURATION ---
-// IMPORTANT: Use Environment Variables in Vercel for these values.
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'YOUR_CLIENT_ID'; 
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || 'YOUR_CLIENT_SECRET'; 
 const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || 'https://tupark.vercel.app/auth/google/callback'; 
@@ -179,16 +178,13 @@ app.get('/admin/reports', checkAuth, (req, res) => res.sendFile(path.join(__dirn
 // 7. AUTHENTICATION & API ROUTES
 // ==========================================
 
-// --- GOOGLE OAUTH ROUTES (NEW LOGIN MECHANISM) ---
-
-// Route 1: Initiates the Google login process (sends user to Google's site)
+// --- GOOGLE OAUTH ROUTES ---
 app.get('/auth/google',
     passport.authenticate('google', { 
         scope: ['email', 'profile'] 
     })
 );
 
-// Route 2: Receives the callback from Google (verification check)
 app.get('/auth/google/callback',
     passport.authenticate('google', { 
         failureRedirect: '/login-page' // Redirect to login on failure
@@ -232,15 +228,10 @@ app.post('/api/session-timeout', (req, res, next) => {
     });
 });
 
-// --- REMOVED: app.post('/login', ...) manual login logic is no longer needed ---
-
-// --- Existing API Routes remain here ---
-
-// --- GET PARKING SPOTS ---
+// --- GET PARKING SPOTS (TIME ZONE FIX APPLIED) ---
 app.get('/api/spots', async (req, res) => { 
     try {
-        // Query to convert the start_time (assuming it's stored as TIMESTAMP WITHOUT TIMEZONE
-        // or a similar type) to the 'Asia/Manila' timezone before returning it.
+        // Query to convert the start_time to the 'Asia/Manila' timezone before returning it.
         const result = await pool.query(`
             SELECT 
                 slot_number, 
@@ -268,14 +259,12 @@ app.get('/api/logs', checkAuth, async (req, res) => {
     }
 });
 
-// --- UPDATE PARKING SPOT ---
-app.post('/api/update-spot', async (req, res) => { // ADD async HERE
+// --- UPDATE PARKING SPOT (LOGIC RETAINED, TIME IS PASSED BY CLIENT) ---
+app.post('/api/update-spot', checkAuth, async (req, res) => { 
     const { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
-    // req.user comes from passport. If not, fallback to session username or 'Unknown Admin'.
-    const currentUser = req.user ? req.user.username : req.session.username || 'Unknown Admin'; 
+    const currentUser = req.user ? req.user.username : 'Unknown Admin'; 
 
-    try { // Use a single try/catch block for robust error handling
-
+    try { 
         // === OCCUPY LOGIC (Validation and Duplicate Check) ===
         if (status === 'occupied') {
             const plateRegex = /^[A-Z]{3}[- ]?\d{3,4}$/;
@@ -292,7 +281,6 @@ app.post('/api/update-spot', async (req, res) => { // ADD async HERE
                 return res.json({ success: false, message: "Plate number is too long." });
             }
 
-            // PostgreSQL Query for Duplicate Check (Uses $1, $2, and async/await)
             const checkSql = 'SELECT slot_number FROM slots WHERE plate_number = $1 AND status = $2 AND slot_number != $3';
             const checkResult = await pool.query(checkSql, [plate_number, 'occupied', slot_id]);
             
@@ -304,10 +292,9 @@ app.post('/api/update-spot', async (req, res) => { // ADD async HERE
             }
         } 
         
-        // === EXECUTE UPDATE (For both 'occupied' and 'available') ===
+        // === EXECUTE UPDATE ===
         const sql = 'UPDATE slots SET status = $1, plate_number = $2, start_time = $3, vehicle_type = $4 WHERE slot_number = $5';
         
-        // Ensure plate_number, park_time, and vehicle_type are correctly passed as null for 'available' status
         const plate = status === 'available' ? null : plate_number;
         const time = status === 'available' ? null : park_time;
         const type = status === 'available' ? null : vehicle_type;
@@ -326,7 +313,6 @@ app.post('/api/update-spot', async (req, res) => { // ADD async HERE
 
     } catch (err) {
         console.error("Update Spot Database Error:", err);
-        // Respond with a clean JSON error response
         res.status(500).json({ success: false, message: "Database Error during spot update." });
     }
 });
