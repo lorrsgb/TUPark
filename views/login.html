@@ -7,40 +7,37 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/homestyle.css" />
   <style>
-    /* ⚠️ WARNING: These styles are critical for the centered layout and visual fixes. */
+    /* ⚠️ WARNING: These styles are critical for the layout and visual fixes. */
     
-    /* 1. Center and Define Card Size */
+    /* 1. Left-Align and Define Card Size */
     .Front-content {
-      text-align: center; /* Center content like headers/forms */
-      padding: 35px 40px; /* Increased padding inside card */
+      text-align: left; /* Aligns content (like headers/forms) left */
+      padding: 30px 25px; 
       width: 90%; 
-      max-width: 420px; /* Slightly wider max-width to match image */
-      margin: 50px auto; /* CENTERS THE CARD HORIZONTALLY */
+      max-width: 330px; /* Reduced max-width for a smaller, tighter card */
+      /* Left-alignment: Margin sets auto (center) on top/bottom, 
+         and pushes the card to the left with a specific left margin. */
+      margin: 50px auto 50px 5%; /* Centers vertically, pushes left by 5% */
       border-radius: 15px; 
       box-sizing: border-box;
-      background: rgba(0, 0, 0, 0.75); /* Ensures the dark card background is present */
-      color: white; /* Ensures text is visible */
+      background: rgba(0, 0, 0, 0.75); 
+      color: white; 
     }
-    
-    /* 2. Adjust Font Sizes and Spacing for Readability */
+
+    /* 2. Ensure Text Fits and is Legible */
     .Front-content h2 {
-        font-size: 26px; /* Larger font size for main header */
+        font-size: 24px;
         margin-bottom: 5px;
     }
     .Front-content p {
-        font-size: 15px; /* Standard font size for description */
+        font-size: 14px;
         line-height: 1.4;
-        margin-bottom: 25px; /* Add space below description */
+        margin-bottom: 25px;
     }
     
-    /* 3. Styles the manual form elements (retaining rounded shape) */
-    .manual-login-section {
-        width: 100%;
-        margin-top: 20px;
-    }
+    /* 3. Input and Button Styles (Retaining Roundness) */
     .manual-login-section form {
       display: block; 
-      text-align: left; /* Ensures labels align left */
       width: 100%; 
     }
     .manual-login-section label {
@@ -49,20 +46,20 @@
       margin-bottom: 5px;
       font-weight: 500;
       color: #ccc;
-      font-size: 16px; 
+      font-size: 14px;
     }
     .manual-login-section input {
       width: 100%;
-      padding: 15px 20px;
+      padding: 12px 20px;
       border: none;
-      border-radius: 30px; /* High radius for rounded edges */
+      border-radius: 30px; 
       background: rgba(255, 255, 255, 0.15); 
       color: white;
       font-size: 16px; 
       box-sizing: border-box;
     }
     
-    /* 4. Styles the LOG IN button (rounded and white) */
+    /* 4. LOG IN Button (Rounded) */
     #manual-login-btn {
         margin-top: 30px !important;
         width: 100% !important;
@@ -70,7 +67,7 @@
         font-weight: 600;
         cursor: pointer;
         border-radius: 30px; 
-        background-color: white; /* Match the provided image (white button) */
+        background-color: white;
         color: black;
         border: none;
         transition: background-color 0.3s;
@@ -98,14 +95,24 @@
     .google-login-btn {
         width: 100%;
         border-radius: 30px;
-        /* Assuming the Google button styling is already handled by homestyle.css
-           or its specific class, but ensuring it matches the width */
     }
-    
-    /* Ensure the background image covers the whole screen */
-    .home-page {
-        background-size: cover;
-        background-position: center;
+
+    /* Media query to ensure it doesn't leave the screen on mobile */
+    @media (max-width: 768px) {
+        .Front-content {
+            margin: 20px auto; /* Center on small screens */
+            max-width: 90%;
+            text-align: center;
+        }
+        /* Restore left-align for inner elements on mobile */
+        .manual-login-section form {
+            text-align: left;
+            display: inline-block; /* Ensure form is centered within the card */
+            max-width: 300px;
+        }
+        .manual-login-section input, .google-login-btn {
+            max-width: 300px;
+        }
     }
   </style>
 </head>
