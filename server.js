@@ -149,8 +149,8 @@ async function logActivity(username, action, details, req) {
 // 5. SECURITY MIDDLEWARE
 // ==========================================
 function checkAuth(req, res, next) {
-    // Check if Passport has successfully deserialized a user (Is authenticated)
-    if (req.isAuthenticated()) {
+    // Check if Passport (OAuth) OR Manual Login session flag is set
+    if (req.isAuthenticated() || req.session.manualAuth) {
         next(); 
     } else {
         // Store intended URL and redirect to login page
@@ -178,7 +178,55 @@ app.get('/admin/reports', checkAuth, (req, res) => res.sendFile(path.join(__dirn
 // 7. AUTHENTICATION & API ROUTES
 // ==========================================
 
-// --- GOOGLE OAUTH ROUTES ---
+// --- MANUAL FALLBACK LOGIN ROUTE (NEWLY ADDED) ---
+app.post('/manual-login', async (req, res) => {
+    // Note: Client-side uses 'email' and 'password'
+    const { email, password } = req.body;
+    let logUser = email; 
+
+    try {
+        // Find user by email
+        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        const user = result.rows[0];
+
+        if (!user) {
+            await logActivity(logUser, 'LOGIN_MANUAL_FAILED', 'User not found.', req);
+            return res.status(401).json({ success: false, message: 'Invalid Email or Password.' });
+        }
+
+        logUser = user.username; 
+        
+        // 1. Check if password hash exists 
+        if (!user.password) {
+            await logActivity(logUser, 'LOGIN_MANUAL_FAILED', 'Password field is NULL (OAuth only user).', req);
+            return res.status(401).json({ success: false, message: 'Invalid Email or Password. (OAuth user)' });
+        }
+
+        // 2. Verify password using bcrypt
+        if (await bcrypt.compare(password, user.password)) {
+            
+            // Success: Set session flag for manual authentication
+            req.session.manualAuth = true;
+            req.session.username = user.username; // Used for logging
+            
+            await logActivity(logUser, 'LOGIN_MANUAL_SUCCESS', 'Admin logged in manually (Fallback)', req);
+            
+            const redirectUrl = req.session.returnTo || '/admin';
+            delete req.session.returnTo; 
+            return res.json({ success: true, redirect: redirectUrl });
+            
+        } else {
+            await logActivity(logUser, 'LOGIN_MANUAL_FAILED', 'Incorrect password hash.', req);
+            return res.status(401).json({ success: false, message: 'Invalid Email or Password.' });
+        }
+    } catch (err) {
+        console.error("Manual Login Error:", err);
+        return res.status(500).json({ success: false, message: "System Error during login." });
+    }
+});
+
+
+// --- GOOGLE OAUTH ROUTES (EXISTING) ---
 app.get('/auth/google',
     passport.authenticate('google', { 
         scope: ['email', 'profile'] 
@@ -201,11 +249,19 @@ app.get('/auth/google/callback',
 );
 
 
-// --- LOGOUT ROUTE ---
+// --- LOGOUT ROUTE (MODIFIED) ---
 app.get('/logout', (req, res, next) => {
-    if (req.user && req.user.username) {
-        logActivity(req.user.username, 'LOGOUT', 'Admin logged out manually', req);
+    // Check if user came from Passport or Manual login
+    const logUsername = (req.user && req.user.username) || req.session.username;
+
+    if (logUsername) {
+        logActivity(logUsername, 'LOGOUT', 'Admin logged out manually', req);
     }
+    
+    // Clear manual session flags
+    delete req.session.manualAuth;
+    delete req.session.username;
+
     // Passport logout functionality
     req.logout((err) => {
         if (err) { return next(err); }
@@ -216,9 +272,16 @@ app.get('/logout', (req, res, next) => {
 });
 
 app.post('/api/session-timeout', (req, res, next) => {
-    if (req.user && req.user.username) {
-        logActivity(req.user.username, 'SESSION_TIMEOUT', 'System auto-logout due to inactivity', req);
+    const logUsername = (req.user && req.user.username) || req.session.username;
+
+    if (logUsername) {
+        logActivity(logUsername, 'SESSION_TIMEOUT', 'System auto-logout due to inactivity', req);
     }
+    
+    // Clear manual session flags
+    delete req.session.manualAuth;
+    delete req.session.username;
+
     // Use Passport logout before destroying session
     req.logout((err) => {
         if (err) { return next(err); }
@@ -262,7 +325,7 @@ app.get('/api/logs', checkAuth, async (req, res) => {
 // --- UPDATE PARKING SPOT (LOGIC RETAINED, TIME IS PASSED BY CLIENT) ---
 app.post('/api/update-spot', checkAuth, async (req, res) => { 
     const { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
-    const currentUser = req.user ? req.user.username : 'Unknown Admin'; 
+    const currentUser = req.user ? req.user.username : req.session.username || 'Unknown Admin'; 
 
     try { 
         // === OCCUPY LOGIC (Validation and Duplicate Check) ===
@@ -354,7 +417,7 @@ app.get('/api/admin/reports', checkAuth, async (req, res) => {
 app.delete('/api/admin/reports/:id', checkAuth, async (req, res) => { 
     const reportId = req.params.id;
     try {
-        const logUsername = req.user && req.user.username ? req.user.username : 'Unknown Admin';
+        const logUsername = req.user && req.user.username ? req.user.username : req.session.username || 'Unknown Admin';
         await pool.query('DELETE FROM problem_reports WHERE id = $1', [reportId]);
         await logActivity(logUsername, 'DELETE_REPORT', `Deleted report ID: ${reportId}`, req);
         res.json({ success: true });

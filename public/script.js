@@ -1,63 +1,68 @@
-const btn = document.getElementById("login-btn");
 const car = document.getElementById("car");
-const adminInput = document.getElementById("admin-id");
-const passInput = document.getElementById("password");
+const manualLoginBtn = document.getElementById("manual-login-btn");
+const emailInput = document.getElementById("manual-email");
+const passInput = document.getElementById("manual-password");
 
 // Fade-in when this page first loads
 window.addEventListener("load", () => {
   document.body.classList.add("fade-in");
 });
 
-btn.addEventListener("click", (e) => {
-  e.preventDefault(); // Stop the form from refreshing the page
+// --- MANUAL LOGIN SUBMISSION LOGIC ---
+manualLoginBtn.addEventListener("click", (e) => {
+  e.preventDefault(); 
 
-  // 1. Get values from the input fields
-  const adminId = adminInput.value;
+  const email = emailInput.value;
   const password = passInput.value;
 
-  // 2. Send data to our new Server
-  fetch('/login', {
+  fetch('/manual-login', { 
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ adminId: adminId, password: password })
+      body: JSON.stringify({ email: email, password: password }) 
   })
-  .then(response => response.json())
+  .then(response => {
+       // Handle 401/500 errors gracefully
+      if (!response.ok) {
+          return response.json().then(errorData => {
+              throw new Error(errorData.message || 'Login failed.');
+          });
+      }
+      return response.json();
+  })
   .then(data => {
       if (data.success) {
-          // 3. IF SUCCESS: Play animation and redirect
-          console.log("Login Approved!");
+          console.log("Manual Login Approved!");
           car.classList.add("move");
 
           setTimeout(() => {
             document.body.classList.add("fade-out");
             setTimeout(() => {
-              // Redirect to the SERVER ROUTE '/admin'
-              window.location.href = "/admin"; 
+              // Redirect to the server-provided redirect URL (e.g., /admin)
+              window.location.href = data.redirect || "/admin"; 
             }, 800); 
           }, 2500);
 
-      } else {
-          // 4. IF FAIL: Show the specific Security Message
-          // This will now show: "Invalid Account. 2 attempts remaining." 
-          // OR "Account Locked. Try again in 30 seconds."
-          alert(data.message);
-      }
+      } 
   })
   .catch(error => {
-      console.error('Error:', error);
-      alert("System Error. Please try again.");
+      console.error('Error:', error.message);
+      alert(`Login Error: ${error.message}`);
   });
 });
-// ==============================
-// LOAD OCCUPANCY STATISTICS
-// ==============================
+// --- END MANUAL LOGIN SUBMISSION LOGIC ---
+
+
 // =====================================
 // LOAD USAGE STATISTICS
 // =====================================
+let usageChart; // Must be defined globally for destroy/re-initialization
+
 async function loadUsageStatistics(range) {
     try {
+        // NOTE: The endpoint /api/stats and the data structure are assumed to exist
+        // based on the previous version of this function.
         const response = await fetch(`/api/stats?range=${range}`);
         const data = await response.json();
 
@@ -102,6 +107,7 @@ async function loadUsageStatistics(range) {
 
 /* TAB CLICK HANDLERS */
 document.addEventListener("click", e => {
+    // Only proceed if the clicked element has the class 'stats-tab'
     if (!e.target.classList.contains("stats-tab")) return;
 
     document.querySelectorAll(".stats-tab").forEach(b => b.classList.remove("active"));
