@@ -239,10 +239,22 @@ app.post('/api/session-timeout', (req, res, next) => {
 // --- GET PARKING SPOTS ---
 app.get('/api/spots', async (req, res) => { 
     try {
-        const result = await pool.query('SELECT * FROM slots');
+        // Query to convert the start_time (assuming it's stored as TIMESTAMP WITHOUT TIMEZONE
+        // or a similar type) to the 'Asia/Manila' timezone before returning it.
+        const result = await pool.query(`
+            SELECT 
+                slot_number, 
+                status, 
+                plate_number,
+                vehicle_type,
+                -- Convert and format the time for PH
+                TO_CHAR(start_time AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD HH24:MI:SS') AS start_time 
+            FROM slots
+        `);
         res.json(result.rows);
     } catch (err) {
-        res.status(500).json(err);
+        console.error("Error fetching spots:", err);
+        res.status(500).json({ message: "Server error fetching spots." });
     }
 });
 

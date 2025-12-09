@@ -439,23 +439,19 @@ function handleSpotClick(spotData) {
 
     let displayTime = spotData.park_time || 'N/A';
 
-if (displayTime !== 'N/A') {
-    // The stored time is in the format YYYY-MM-DD HH:MM:SS.
-    // We only want the time part (HH:MM:SS) for the modal display.
-    // Example: "2025-12-09 15:20:29" -> "15:20:29"
-    
-    // Split the date and time, and take the time component.
-    const timeComponent = displayTime.split(' ')[1]; 
-    
-    if (timeComponent) {
-        // Convert 24-hour time component (e.g., 15:20:29) to 12-hour format (3:20:29 PM)
-        const [h, m, s] = timeComponent.split(':').map(Number);
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        const hour12 = h % 12 || 12; // Convert 0 to 12
+    if (displayTime !== 'N/A') {
+        const timeComponent = displayTime.split(' ')[1]; 
         
-        displayTime = `${hour12}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} ${ampm}`;
+        if (timeComponent) {
+            // Convert 24-hour time component (e.g., 15:20:29) to 12-hour format (3:20:29 PM)
+            const [h, m, s] = timeComponent.split(':').map(Number);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const hour12 = h % 12 || 12; // Convert 0 to 12
+            
+            // Format the time as HH:MM:SS AM/PM
+            displayTime = `${hour12}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} ${ampm}`;
+        }
     }
-  }
 
     modalBody.innerHTML = `
       <p>THIS SPOT IS OCCUPIED.</p>
