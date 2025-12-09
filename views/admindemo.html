@@ -480,11 +480,10 @@ function occupySpot(spotId) {
   const vehicleNo = vehicleInput.value.trim().toUpperCase();
   const vehicleType = typeInput.value; 
 
-  // --- START REVISED TIME LOGIC FOR PH TIME (UTC+8) ---
+  // --- START REVISED TIME LOGIC for PH TIME (UTC+8) ---
   const now = new Date();
 
-  // Format the date/time string specifically for PH time (UTC+8)
-  // This ensures the server, regardless of its own time zone, stores the correct PH time.
+  // 1. Define options for Philippine Time (UTC+8)
   const timeOptions = {
       year: 'numeric',
       month: '2-digit',
@@ -493,19 +492,18 @@ function occupySpot(spotId) {
       minute: '2-digit',
       second: '2-digit',
       hourCycle: 'h23', // Use 24-hour format
-      timeZone: 'Asia/Manila' // Philippine Standard Time (UTC+8)
+      timeZone: 'Asia/Manila' 
   };
   
-  // Generate PH Time components
-  const phTimeParts = new Intl.DateTimeFormat('en-US', timeOptions).formatToParts(now);
+  // 2. Generate PH Time components using 'en-CA' locale for YYYY-MM-DD format
+  // Note: en-CA produces YYYY-MM-DD format which is easier to parse.
+  const phTime = now.toLocaleString('en-CA', timeOptions); 
   
-  // Manually reconstruct the 'YYYY-MM-DD HH:MM:SS' format expected by the backend
-  const partsMap = phTimeParts.reduce((acc, part) => {
-      acc[part.type] = part.value;
-      return acc;
-  }, {});
+  // 3. Reformat the output string to match PostgreSQL/MySQL DATETIME format: YYYY-MM-DD HH:MM:SS
+  // Example phTime output: "2025-12-09, 15:12:52"
+  const time = phTime.replace(/,/, '').replace(/\s/, ' '); 
   
-  const time = `${partsMap.year}-${partsMap.month}-${partsMap.day} ${partsMap.hour}:${partsMap.minute}:${partsMap.second}`;
+  // Example 'time' variable value: "2025-12-09 15:12:52" (PH Time)
   // --- END REVISED TIME LOGIC ---
 
   fetch('/api/update-spot', {
