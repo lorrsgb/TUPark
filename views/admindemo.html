@@ -436,23 +436,6 @@ function handleSpotClick(spotData) {
   modalTitle.textContent = `Spot ID: ${spotData.spot_id}`;
 
   if (spotData.status === 'occupied' || spotData.status === 'unavailable') {
-
-    let displayTime = spotData.park_time || 'N/A';
-
-    if (displayTime !== 'N/A') {
-        const timeComponent = displayTime.split(' ')[1]; 
-        
-        if (timeComponent) {
-            // Convert 24-hour time component (e.g., 15:20:29) to 12-hour format (3:20:29 PM)
-            const [h, m, s] = timeComponent.split(':').map(Number);
-            const ampm = h >= 12 ? 'PM' : 'AM';
-            const hour12 = h % 12 || 12; // Convert 0 to 12
-            
-            // Format the time as HH:MM:SS AM/PM
-            displayTime = `${hour12}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} ${ampm}`;
-        }
-    }
-
     modalBody.innerHTML = `
       <p>THIS SPOT IS OCCUPIED.</p>
       <p>Vehicle: <strong>${spotData.vehicle_no}</strong></p>
@@ -492,36 +475,16 @@ function handleSpotClick(spotData) {
 function occupySpot(spotId) {
   const vehicleInput = document.getElementById(`vehicle-input-${spotId}`);
   const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
-  
-  // Clean inputs
-  const vehicleNo = vehicleInput.value.trim().toUpperCase();
-  const vehicleType = typeInput.value; 
 
-  // --- START REVISED TIME LOGIC for PH TIME (UTC+8) ---
+  // Get Local Time
   const now = new Date();
-
-  // 1. Define options for Philippine Time (UTC+8)
-  const timeOptions = {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hourCycle: 'h23', // Use 24-hour format
-      timeZone: 'Asia/Manila' 
-  };
-  
-  // 2. Generate PH Time components using 'en-CA' locale for YYYY-MM-DD format
-  // Note: en-CA produces YYYY-MM-DD format which is easier to parse.
-  const phTime = now.toLocaleString('en-CA', timeOptions); 
-  
-  // 3. Reformat the output string to match PostgreSQL/MySQL DATETIME format: YYYY-MM-DD HH:MM:SS
-  // Example phTime output: "2025-12-09, 15:12:52"
-  const time = phTime.replace(/,/, '').replace(/\s/, ' '); 
-  
-  // Example 'time' variable value: "2025-12-09 15:12:52" (PH Time)
-  // --- END REVISED TIME LOGIC ---
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const time = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
   fetch('/api/update-spot', {
       method: 'POST',
@@ -534,12 +497,14 @@ function occupySpot(spotId) {
           vehicle_type: vehicleType 
       })
   })
-  .then(response => response.json()) 
+  .then(response => response.json()) // 1. Decode the JSON response from server
   .then(data => {
+      // 2. Check if the server said "Success" or "Error"
       if (data.success) {
           closeModal();
           fetchAndRenderSpots(locationSelect.value); 
       } else {
+          // 3. Show the validation error (e.g., "Invalid Plate Number")
           alert(data.message); 
       }
   })
@@ -548,6 +513,27 @@ function occupySpot(spotId) {
       alert("System Error. Please try again.");
   });
 }
+
+function releaseSpot(spotId) {
+  if (!confirm(`Release spot ${spotId}?`)) return;
+
+  fetch('/api/update-spot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+          slot_id: spotId, 
+          status: 'available', 
+          plate_number: null, 
+          park_time: null,
+          vehicle_type: null
+      })
+  }).then(() => {
+      closeModal();
+      fetchAndRenderSpots(locationSelect.value);
+  });
+}
+
+window.onclick = (e) => { if (e.target === modal) closeModal(); }
 
 function releaseSpot(spotId) {
   if (!confirm(`Release spot ${spotId}?`)) return;
@@ -648,16 +634,7 @@ async function fetchLogs() {
             item.innerHTML = `
                 <div style="display: flex; justify-content: space-between;">
                     <strong style="color: #22c55e">${log.action}</strong>
-                    <span style="color: #888; font-size: 0.8em;">${new Date(log.timestamp).toLocaleString('en-US', {
-                      timeZone: 'Asia/Manila',
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit',
-                      hourCycle: 'h12'
-                      })}
+                    <span style="color: #888; font-size: 0.8em;">${new Date(log.timestamp).toLocaleString()}
                 </span>
                 </div>
                 <div style="color: #fff;">${log.username}: ${log.details}</div>
