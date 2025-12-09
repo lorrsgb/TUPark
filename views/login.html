@@ -7,56 +7,62 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/homestyle.css" />
   <style>
-    /* ⚠️ WARNING: These styles are critical for the layout and visual fixes. */
+    /* ⚠️ WARNING: These styles are critical for the centered layout and visual fixes. */
     
-    /* 1. Left-Align and Make Card Compact */
+    /* 1. Center and Define Card Size */
     .Front-content {
-      text-align: left; /* Aligns text left */
-      padding: 30px 25px; 
+      text-align: center; /* Center content like headers/forms */
+      padding: 35px 40px; /* Increased padding inside card */
       width: 90%; 
-      max-width: 380px; /* Adjust max width slightly for better fit */
-      margin: 50px 0 50px 50px; /* LEFT-ALIGNMENT: Top, Right(0), Bottom, Left(50px) */
+      max-width: 420px; /* Slightly wider max-width to match image */
+      margin: 50px auto; /* CENTERS THE CARD HORIZONTALLY */
       border-radius: 15px; 
       box-sizing: border-box;
+      background: rgba(0, 0, 0, 0.75); /* Ensures the dark card background is present */
+      color: white; /* Ensures text is visible */
     }
     
-    /* 2. Adjust Font Sizes for Fit */
+    /* 2. Adjust Font Sizes and Spacing for Readability */
     .Front-content h2 {
-        font-size: 24px; /* Reduced font size for main header */
+        font-size: 26px; /* Larger font size for main header */
         margin-bottom: 5px;
     }
     .Front-content p {
-        font-size: 14px; /* Reduced font size for description */
+        font-size: 15px; /* Standard font size for description */
         line-height: 1.4;
+        margin-bottom: 25px; /* Add space below description */
     }
     
     /* 3. Styles the manual form elements (retaining rounded shape) */
+    .manual-login-section {
+        width: 100%;
+        margin-top: 20px;
+    }
     .manual-login-section form {
-      display: block; /* Use block to maintain left alignment */
-      text-align: left; 
+      display: block; 
+      text-align: left; /* Ensures labels align left */
       width: 100%; 
-      max-width: 100%;
     }
     .manual-login-section label {
       display: block;
       margin-top: 15px;
+      margin-bottom: 5px;
       font-weight: 500;
       color: #ccc;
-      font-size: 14px; /* Ensure label text fits */
+      font-size: 16px; 
     }
     .manual-login-section input {
       width: 100%;
-      padding: 12px 20px; /* Slightly reduced padding */
-      margin-top: 5px;
+      padding: 15px 20px;
       border: none;
-      border-radius: 30px; 
+      border-radius: 30px; /* High radius for rounded edges */
       background: rgba(255, 255, 255, 0.15); 
       color: white;
       font-size: 16px; 
       box-sizing: border-box;
     }
     
-    /* 4. Styles the LOG IN button (rounded) */
+    /* 4. Styles the LOG IN button (rounded and white) */
     #manual-login-btn {
         margin-top: 30px !important;
         width: 100% !important;
@@ -64,9 +70,13 @@
         font-weight: 600;
         cursor: pointer;
         border-radius: 30px; 
+        background-color: white; /* Match the provided image (white button) */
+        color: black;
+        border: none;
+        transition: background-color 0.3s;
     }
     
-    /* 5. Separator with text (OR) */
+    /* 5. Separator with OR text */
     .separator-text {
         margin: 20px 0;
         color: #aaa;
@@ -83,18 +93,19 @@
         border-top: 1px solid rgba(255, 255, 255, 0.3);
         margin: 0 10px;
     }
+    
+    /* 6. Google Button */
     .google-login-btn {
         width: 100%;
-        max-width: 100%;
         border-radius: 30px;
+        /* Assuming the Google button styling is already handled by homestyle.css
+           or its specific class, but ensuring it matches the width */
     }
-
-    /* Media query to ensure it fits very small screens */
-    @media (max-width: 500px) {
-        .Front-content {
-            margin: 20px auto; /* Center on small screen */
-            max-width: 90%;
-        }
+    
+    /* Ensure the background image covers the whole screen */
+    .home-page {
+        background-size: cover;
+        background-position: center;
     }
   </style>
 </head>
