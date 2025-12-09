@@ -7,49 +7,79 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/homestyle.css" />
   <style>
-    /* Temporary inline styles for centering and styling the new form elements */
+    /* ⚠️ WARNING: These styles are added inline to override your existing CSS for the compact and rounded look. */
+    
+    /* 1. Makes the content card smaller and centered */
     .Front-content {
       text-align: center;
+      padding: 30px 25px; /* Reduce padding inside the card */
+      width: 90%; 
+      max-width: 350px; /* Max width for smaller card */
+      margin: 50px auto; /* Centers and positions the card */
+      border-radius: 15px; /* Keeps the card itself rounded */
+      box-sizing: border-box;
     }
+    
+    /* 2. Styles the manual form elements */
     .manual-login-section form {
-      display: inline-block; /* Allows form elements to be grouped and centered */
-      text-align: left; /* Ensures labels align left within the centered form */
-      width: 80%;
-      max-width: 350px;
+      display: inline-block; 
+      text-align: left; 
+      width: 100%; /* Ensures inputs still use full width of the card */
+      max-width: 300px;
     }
     .manual-login-section label {
       display: block;
       margin-top: 15px;
       font-weight: 500;
+      color: #ccc;
     }
     .manual-login-section input {
       width: 100%;
-      padding: 15px 10px;
+      padding: 15px 20px;
       margin-top: 5px;
       border: none;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.1);
+      border-radius: 30px; /* High radius for rounded edges */
+      background: rgba(255, 255, 255, 0.15); /* Slightly brighter background */
       color: white;
       font-size: 16px;
       box-sizing: border-box;
     }
-    .login-btn {
+    
+    /* 3. Styles the LOG IN button (matches Google button roundness) */
+    #manual-login-btn {
         margin-top: 30px !important;
         width: 100% !important;
         padding: 15px;
         font-weight: 600;
         cursor: pointer;
+        border-radius: 30px; /* High radius for rounded edges */
     }
-    .separator-line {
-        margin: 20px auto;
-        width: 60%;
-        max-width: 300px;
+    
+    /* 4. Separator with text */
+    .separator-text {
+        margin: 20px 0;
+        color: #aaa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        text-transform: uppercase;
+    }
+    .separator-text hr {
+        flex-grow: 1;
         border: none;
-        border-top: 2px solid rgba(255, 255, 255, 0.2);
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+        margin: 0 10px;
     }
     .google-login-btn {
-        width: 80%;
-        max-width: 300px;
+        width: 100%;
+        max-width: 300px; /* Keeps the Google button width consistent */
+        border-radius: 30px; /* Ensure Google button is also highly rounded */
+    }
+    /* Ensure image scales down nicely */
+    .car {
+        max-width: 100%;
+        height: auto;
     }
   </style>
 </head>
@@ -83,7 +113,11 @@
         </form>
     </div>
 
-    <hr class="separator-line">
+    <div class="separator-text">
+        <hr>
+        <span>OR</span>
+        <hr>
+    </div>
     
     <div class="oauth-container">
         <a href="/auth/google" class="google-login-btn">
