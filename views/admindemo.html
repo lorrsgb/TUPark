@@ -173,7 +173,7 @@
 // ==========================================
 // 1. CONFIGURATION
 // ==========================================
-// ... (The rest of Section 1 through Section 2 remains the same) ...
+// ... (Lines 1-213 remain the same) ...
 const locationSelect = document.getElementById('park-location');
 const mapImage = document.getElementById('map-image');
 const resetButton = document.getElementById('reset-filter');
@@ -441,7 +441,7 @@ function handleSpotClick(spotData) {
       <p>THIS SPOT IS OCCUPIED.</p>
       <p>Vehicle: <strong>${spotData.vehicle_no}</strong></p>
       <p>Type: <strong>${spotData.vehicle_type || 'N/A'}</strong></p>
-      <p>Time: <strong>${spotData.park_time ? new Date(spotData.park_time).toLocaleTimeString() : 'N/A'}</strong></p>
+      <p>Time: <strong>${spotData.park_time ? new Date(spotData.park_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Manila' }) : 'N/A'}</strong></p>
       <div class="modal-actions">
           <button class="action-btn-release" onclick="releaseSpot('${spotData.spot_id}')">Release Spot</button>
       </div>
