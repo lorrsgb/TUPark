@@ -256,79 +256,53 @@ app.get('/api/logs', checkAuth, async (req, res) => {
     }
 });
 
-const plateRegex = /^(?:[A-Z]{3}\d{3,4}|[A-Z]{2}\d{4,5}|\d{4,5}[A-Z]{2})$/;
+app.post('/api/update-spot', (req, res) => {
+    const { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
+    const currentUser = req.session.username || 'Unknown Admin'; 
 
-app.post('/api/update-spot', checkAuth, async (req, res) => { 
-    // Destructure required body parameters
-    let { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
-    
-    const currentUser = req.user && req.user.username ? req.user.username : 'Unknown Admin'; 
-
-    // Server-side sanitation and normalization (Defensive Programming)
-    // Note: The client already strips this, but it's good practice to ensure it here too.
-    plate_number = plate_number ? plate_number.toUpperCase().replace(/[\s-]/g, '') : null;
-    
-    // Variables to be used in the SQL query
-    let plateToUpdate = null;
-    let timeToUpdate = null;
-    let typeToUpdate = null;
-
-    try {
-        if (status === 'occupied') {
-            // 🛑 1. Validation checks 🛑
-            if (!plate_number || !plateRegex.test(plate_number)) {
-                return res.json({ success: false, message: "Invalid Plate Number!" });
-            }
-            if (!['Car', 'Motorcycle', 'Van', 'Others'].includes(vehicle_type)) {
-                return res.json({ success: false, message: "Invalid Vehicle Type." });
-            }
-            
-            // 🛑 2. Duplicate Check 🛑
-            const checkResult = await pool.query('SELECT * FROM slots WHERE plate_number = $1 AND status = $2 AND slot_number != $3', [plate_number, 'occupied', slot_id]);
-            if (checkResult.rows.length > 0) {
-                return res.json({ success: false, message: `Error: Vehicle ${plate_number} is already parked at ${checkResult.rows[0].slot_number}!` });
-            }
-            
-            // Set variables for execution
-            plateToUpdate = plate_number;
-            timeToUpdate = park_time;
-            typeToUpdate = vehicle_type;
-
-            await executeUpdate(currentUser, plateToUpdate, timeToUpdate, typeToUpdate, slot_id, status);
-
-        } else { // status is 'released'
-            // For released status, we clear plate, time, and type.
-            plateToUpdate = null; 
-            timeToUpdate = null;
-            typeToUpdate = null;
-            
-            await executeUpdate(currentUser, plateToUpdate, timeToUpdate, typeToUpdate, slot_id, status);
+    if (status === 'occupied') {
+        const plateRegex = /^[A-Z]{3}[- ]?\d{3,4}$/;
+        if (!plate_number || !plateRegex.test(plate_number)) {
+            return res.json({ success: false, message: "Invalid Plate Number! Format must be LLL-DDD or LLL-DDDD (e.g., ABC-123)." });
         }
-        
-    } catch (err) {
-        console.error("Update Spot Error:", err);
-        res.status(500).json({ success: false, message: "Database Operation Failed" });
+
+        const validTypes = ['Car', 'Motorcycle', 'Van', 'Others'];
+        if (!validTypes.includes(vehicle_type)) {
+            return res.json({ success: false, message: "Invalid Vehicle Type selected." });
+        }
+
+        if (plate_number.length > 15) {
+             return res.json({ success: false, message: "Plate number is too long." });
+        }
+
+        const checkSql = 'SELECT * FROM slots WHERE plate_number = ? AND status = "occupied" AND slot_number != ?';
+        db.query(checkSql, [plate_number, slot_id], (err, results) => {
+            if (err) return res.json({ success: false, message: "Database Error checking duplicates" });
+            if (results.length > 0) return res.json({ success: false, message: `Error: Vehicle ${plate_number} is already parked at ${results[0].slot_number}!` });
+            
+            executeUpdate(currentUser);
+        });
+
+    } else {
+        executeUpdate(currentUser);
+    }
+
+    function executeUpdate(user) {
+        const sql = 'UPDATE slots SET status = ?, plate_number = ?, start_time = ?, vehicle_type = ? WHERE slot_number = ?';
+        db.query(sql, [status, plate_number, park_time, vehicle_type, slot_id], (err, result) => {
+            if (err) return res.status(500).json({ success: false, message: "Database Update Failed" });
+            
+            const actionType = status === 'occupied' ? 'OCCUPY_SPOT' : 'RELEASE_SPOT';
+            const details = status === 'occupied' 
+                ? `Parked ${plate_number} (${vehicle_type}) at ${slot_id}`
+                : `Released spot ${slot_id}`;
+                
+            logActivity(user, actionType, details, req);
+
+            res.json({ success: true });
+        });
     }
 });
-
-    async function executeUpdate(user, plate, time, type, spotId, currentStatus) {
-    
-    // Ensure the SQL update uses the explicit function parameters
-    const sql = 'UPDATE slots SET status = $1, plate_number = $2, start_time = $3, vehicle_type = $4 WHERE slot_number = $5';
-    // Parameter Array: [1=status, 2=plate_number, 3=start_time, 4=vehicle_type, 5=slot_number]
-    await pool.query(sql, [currentStatus, plate, time, type, spotId]);
-    
-    // Logging logic
-    const actionType = currentStatus === 'occupied' ? 'OCCUPY_SPOT' : 'RELEASE_SPOT';
-    const details = currentStatus === 'occupied' 
-        ? `Parked ${plate} (${type}) at ${spotId}` 
-        : `Released spot ${spotId}`;
-        
-    await logActivity(user, actionType, details, req);
-    
-    // Respond after successful DB operation and logging
-    res.json({ success: true });
-}
 
 // --- USER REPORT SUBMISSION ---
 app.post('/api/submit-report', async (req, res) => { 

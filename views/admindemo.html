@@ -472,62 +472,23 @@ function handleSpotClick(spotData) {
   modal.classList.add('show-modal');
 }
 
-function occupySpot(spotId) { 
-  const vehicleInput = document.getElementById(`vehicle-input-${spotId}`); 
-  const typeInput = document.getElementById(`vehicle-type-input-${spotId}`);
+function occupySpot(spotId) {
+  const vehicleInput = document.getElementById(`vehicle-input-${spotId}`);
+  const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
+  
+  // Clean inputs
+  const vehicleNo = vehicleInput.value.trim().toUpperCase();
+  const vehicleType = typeInput.value; 
 
-  const vehicleNoRaw = vehicleInput.value.trim().toUpperCase(); 
-  const vehicleType = typeInput.value;
-
-  // 1. Check for allowed characters in the raw input (NEW/RE-ADDED VALIDATION)
-  if (!/^[A-Z0-9\s-]*$/.test(vehicleNoRaw)) {
-      alert("Invalid plate number format. Only letters, numbers, spaces, or hyphens are allowed.");
-      vehicleInput.focus();
-      return;
-  }
-
-  // Remove spaces/hyphens for length and format check
-  const strippedVehicleNo = vehicleNoRaw.replace(/[\s-]/g, '');
-
-  // 2. Empty?
-  if (strippedVehicleNo === "") {
-    alert("Plate number cannot be empty.");
-    vehicleInput.focus();
-    return;
-  }
-
-  // 3. Strict length: 6 or 7
-  const plateLength = strippedVehicleNo.length;
-  if (plateLength !== 6 && plateLength !== 7) {
-    alert(`Plate number must be 6 or 7 characters long. Yours has ${plateLength}.`);
-    vehicleInput.focus();
-    return;
-  }
-
-  // 4. Check plate number format against the comprehensive regex
-  // This regex only applies to the STRIPPED plate.
-  const plateRegex = /^(?:[A-Z]{3}\d{3,4}|[A-Z]{2}\d{4,5}|\d{4,5}[A-Z]{2})$/;
-  if (!plateRegex.test(strippedVehicleNo)) { // Check the stripped version
-    alert("Invalid Plate Number format! Please check the letter/number sequence.");
-    vehicleInput.focus();
-    return;
-  }
-
-  const finalPlateNumber = strippedVehicleNo;
-
-  // ✅ Get PH Time (CORRECTED by using new Date() instead of undefined nowInPH)
-  const parkTime = new Date().toLocaleString('sv-SE', { 
-    timeZone: 'Asia/Manila', 
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  }).replace(',', '')
-
-  const time = parkTime;
+  // Get Local Time
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const time = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
   fetch('/api/update-spot', {
       method: 'POST',
@@ -535,7 +496,7 @@ function occupySpot(spotId) {
       body: JSON.stringify({ 
           slot_id: spotId, 
           status: 'occupied', 
-          plate_number: finalPlateNumber, 
+          plate_number: vehicleNo, 
           park_time: time,
           vehicle_type: vehicleType 
       })
