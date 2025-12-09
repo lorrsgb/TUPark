@@ -436,6 +436,24 @@ function handleSpotClick(spotData) {
   modalTitle.textContent = `Spot ID: ${spotData.spot_id}`;
 
   if (spotData.status === 'occupied' || spotData.status === 'unavailable') {
+
+    let displayTime = 'N/A';
+    if (spotData.park_time) {
+        const storedDate = new Date(spotData.park_time);
+
+        // Format the Date object, explicitly forcing the Asia/Manila (UTC+8) time zone.
+        displayTime = storedDate.toLocaleString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZone: 'Asia/Manila', // <-- THIS IS THE KEY FIX
+            hourCycle: 'h12' // Use 12-hour AM/PM format
+        });
+        
+        // You might want to remove the date part if you only want the time
+        // displayTime = displayTime.split(', ')[1]; 
+    }
+
     modalBody.innerHTML = `
       <p>THIS SPOT IS OCCUPIED.</p>
       <p>Vehicle: <strong>${spotData.vehicle_no}</strong></p>
