@@ -631,7 +631,17 @@ async function fetchLogs() {
             item.innerHTML = `
                 <div style="display: flex; justify-content: space-between;">
                     <strong style="color: #22c55e">${log.action}</strong>
-                    <span style="color: #888; font-size: 0.8em;">${new Date(log.timestamp).toLocaleString()}</span>
+                    <span style="color: #888; font-size: 0.8em;">${new Date(log.timestamp).toLocaleString('en-US', {
+                      timeZone: 'Asia/Manila',
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                      hourCycle: 'h12'
+                      })}
+                </span>
                 </div>
                 <div style="color: #fff;">${log.username}: ${log.details}</div>
             `;
