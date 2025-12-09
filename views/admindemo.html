@@ -510,18 +510,31 @@ function occupySpot(spotId) {
   const finalPlateNumber = strippedVehicleNo;
 
   // Get PH Time
-  const now = new Date();
-  const phTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+  const phTime = new Date(new Date().toLocaleString("en-US", {
+    timeZone: "Asia/Manila"
+  }));
 
-  const year = phTime.getFullYear();
-  const month = String(phTime.getMonth() + 1).padStart(2, '0');
-  const day = String(phTime.getDate()).padStart(2, '0');
-  const hours = String(phTime.getHours()).padStart(2, '0');
-  const minutes = String(phTime.getMinutes()).padStart(2, '0');
-  const seconds = String(phTime.getSeconds()).padStart(2, '0');
+  const nowInPH = new Date();
 
-  const time = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  const year = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", year: 'numeric' });
+  const month = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", month: '2-digit' });
+  const day = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", day: '2-digit' });
+  const hours = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", hour: '2-digit', hour12: false }).padStart(2, '0');
+  const minutes = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", minute: '2-digit' }).padStart(2, '0');
+  const seconds = nowInPH.toLocaleString("en-US", { timeZone: "Asia/Manila", second: '2-digit' }).padStart(2, '0');
 
+  const parkTime = nowInPH.toLocaleString('sv-SE', { 
+    timeZone: 'Asia/Manila', 
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false // Ensure 24-hour format
+  }).replace(',', '')
+
+  const time = parkTime;
 
   fetch('/api/update-spot', {
       method: 'POST',
