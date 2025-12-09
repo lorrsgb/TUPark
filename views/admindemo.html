@@ -480,15 +480,33 @@ function occupySpot(spotId) {
   const vehicleNo = vehicleInput.value.trim().toUpperCase();
   const vehicleType = typeInput.value; 
 
-  // Get Local Time
+  // --- START REVISED TIME LOGIC FOR PH TIME (UTC+8) ---
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  const time = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+  // Format the date/time string specifically for PH time (UTC+8)
+  // This ensures the server, regardless of its own time zone, stores the correct PH time.
+  const timeOptions = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23', // Use 24-hour format
+      timeZone: 'Asia/Manila' // Philippine Standard Time (UTC+8)
+  };
+  
+  // Generate PH Time components
+  const phTimeParts = new Intl.DateTimeFormat('en-US', timeOptions).formatToParts(now);
+  
+  // Manually reconstruct the 'YYYY-MM-DD HH:MM:SS' format expected by the backend
+  const partsMap = phTimeParts.reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+  }, {});
+  
+  const time = `${partsMap.year}-${partsMap.month}-${partsMap.day} ${partsMap.hour}:${partsMap.minute}:${partsMap.second}`;
+  // --- END REVISED TIME LOGIC ---
 
   fetch('/api/update-spot', {
       method: 'POST',
@@ -501,14 +519,12 @@ function occupySpot(spotId) {
           vehicle_type: vehicleType 
       })
   })
-  .then(response => response.json()) // 1. Decode the JSON response from server
+  .then(response => response.json()) 
   .then(data => {
-      // 2. Check if the server said "Success" or "Error"
       if (data.success) {
           closeModal();
           fetchAndRenderSpots(locationSelect.value); 
       } else {
-          // 3. Show the validation error (e.g., "Invalid Plate Number")
           alert(data.message); 
       }
   })
