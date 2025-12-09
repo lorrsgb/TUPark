@@ -173,7 +173,7 @@
 // ==========================================
 // 1. CONFIGURATION
 // ==========================================
-// ... (The rest of Section 1 through Section 6 remains the same) ...
+// ... (The rest of Section 1 through Section 2 remains the same) ...
 const locationSelect = document.getElementById('park-location');
 const mapImage = document.getElementById('map-image');
 const resetButton = document.getElementById('reset-filter');
@@ -315,6 +315,7 @@ const parkingSpots = {
 // ==========================================
 // 3. CORE LOGIC
 // ==========================================
+// ... (Logic remains the same up to handleSpotClick) ...
 
 function updateDashboardCounts(dbSpots, selectedType) {
   const buildingMap = {
@@ -495,6 +496,7 @@ function getManilaTimeString() {
     dateParts[type] = value;
   });
 
+  // Reconstruct the date/time string in a format PostgreSQL accepts (YYYY-MM-DD HH:MI:SS)
   return `${dateParts.year}-${dateParts.month}-${dateParts.day} ${dateParts.hour}:${dateParts.minute}:${dateParts.second}`;
 }
 
@@ -505,7 +507,7 @@ function occupySpot(spotId) {
   const vehicleNo = vehicleInput.value;
   const vehicleType = typeInput.value;
 
-  // Get Local Time
+  // Get Local Time in MANILA TIMEZONE (The fix is here)
   const time = getManilaTimeString();
 
   fetch('/api/update-spot', {
@@ -519,14 +521,12 @@ function occupySpot(spotId) {
           vehicle_type: vehicleType 
       })
   })
-  .then(response => response.json()) // 1. Decode the JSON response from server
+  .then(response => response.json()) 
   .then(data => {
-      // 2. Check if the server said "Success" or "Error"
       if (data.success) {
           closeModal();
           fetchAndRenderSpots(locationSelect.value); 
       } else {
-          // 3. Show the validation error (e.g., "Invalid Plate Number")
           alert(data.message); 
       }
   })
@@ -535,27 +535,6 @@ function occupySpot(spotId) {
       alert("System Error. Please try again.");
   });
 }
-
-function releaseSpot(spotId) {
-  if (!confirm(`Release spot ${spotId}?`)) return;
-
-  fetch('/api/update-spot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-          slot_id: spotId, 
-          status: 'available', 
-          plate_number: null, 
-          park_time: null,
-          vehicle_type: null
-      })
-  }).then(() => {
-      closeModal();
-      fetchAndRenderSpots(locationSelect.value);
-  });
-}
-
-window.onclick = (e) => { if (e.target === modal) closeModal(); }
 
 function releaseSpot(spotId) {
   if (!confirm(`Release spot ${spotId}?`)) return;
@@ -598,14 +577,13 @@ vehicleTypeSelect.addEventListener('change', () => {
 
     if (type !== 'all') {
         // LOCK LOGIC: If specific type selected (Car, Van, etc.)
-        availableCheckbox.checked = false; // Uncheck it automatically
-        availableCheckbox.disabled = true; // Disable (Gray out) the box
+        availableCheckbox.checked = false; 
+        availableCheckbox.disabled = true; 
         
-        // Optional: You might want to force "Unavailable" to be checked so they see results
         unavailableCheckbox.checked = true; 
     } else {
         // UNLOCK LOGIC: If 'All' is selected
-        availableCheckbox.disabled = false; // Make it clickable again
+        availableCheckbox.disabled = false; 
     }
 
     fetchAndRenderSpots(locationSelect.value);
@@ -620,7 +598,7 @@ resetButton.addEventListener('click', () => {
   vehicleTypeSelect.value = 'all'; 
   
   // Reset Checkboxes
-  availableCheckbox.disabled = false; // Unlock it!
+  availableCheckbox.disabled = false; 
   availableCheckbox.checked = false;
   unavailableCheckbox.checked = false;
   
@@ -671,7 +649,6 @@ const chartsModal = document.getElementById('charts-modal');
 
 function openChartsModal() {
     chartsModal.classList.add('show-modal');
-    // Ensure charts are initialized/updated when the modal opens
     initializeCharts();
 }
 
@@ -685,44 +662,37 @@ function closeChartsModal() {
 // ==========================================
 let idleTime = 0;
 
-// Set limit to 15 Minutes (15 * 60 * 1000)
-// FOR TESTING: Change this to 10000 (10 seconds) to see it work quickly!
 const TIMEOUT_LIMIT = 15 * 60 * 1000; 
 
-// Reset the timer whenever the user does something
 function resetTimer() {
     idleTime = 0;
 }
 
-// Listen for activity
 document.onmousemove = resetTimer;
 document.onkeypress = resetTimer;
 document.onclick = resetTimer;
 document.onscroll = resetTimer;
 
-// Check idle status every second
 setInterval(() => {
     if (idleTime >= TIMEOUT_LIMIT) {
-        // 1. Tell Server to log the timeout
         fetch('/api/session-timeout', { method: 'POST' })
         .then(() => {
-            // 2. Alert the user and redirect
             alert("Session Expired due to inactivity. You have been logged out.");
             window.location.href = '/login-page';
         });
     }
-    idleTime += 1000; // Add 1 second to counter
+    idleTime += 1000; 
 }, 1000);
 
 
 // ==========================================
 // 7. CHART.JS IMPLEMENTATION LOGIC 📊
+// ... (Section 7 remains the same) ...
 // ==========================================
 
 let dailyChart, weeklyChart, monthlyChart;
-const TOTAL_SPOTS = 85; // **IMPORTANT: ADJUST THIS TO YOUR ACTUAL TOTAL NUMBER OF PARKING SPOTS**
+const TOTAL_SPOTS = 85; 
 
-// --- Helper function to fetch data ---
 async function fetchChartData(endpoint) {
     try {
         const response = await fetch(endpoint);
@@ -734,27 +704,21 @@ async function fetchChartData(endpoint) {
     }
 }
 
-// --- Initialization Function ---
 async function initializeCharts() {
-    // 1. Fetch ALL Real Data
     const dailyDataRaw = await fetchChartData('/api/charts/daily');
     const weeklyDataRaw = await fetchChartData('/api/charts/weekly');
     const monthlyDataRaw = await fetchChartData('/api/charts/monthly');
 
-    // Clean up old charts
     if (dailyChart) dailyChart.destroy();
     if (weeklyChart) weeklyChart.destroy();
     if (monthlyChart) monthlyChart.destroy();
 
-    // 2. Prepare Daily Data
     const dailyLabels = dailyDataRaw.map(d => d.hour_label + ':00');
     const dailyOccupied = dailyDataRaw.map(d => parseInt(d.occupied_count, 10));
 
-    // 3. Prepare Weekly Data
     const weeklyLabels = weeklyDataRaw.map(d => d.day_label);
     const weeklyOccupied = weeklyDataRaw.map(d => parseInt(d.occupied_slots_count, 10));
 
-    // 4. Prepare Monthly Data
     const monthlyLabels = monthlyDataRaw.map(d => d.month_label);
     const monthlyAvgOccupied = monthlyDataRaw.map(d => parseInt(d.average_occupied_slots, 10));
 
@@ -767,7 +731,7 @@ async function initializeCharts() {
             datasets: [{
                 label: 'Occupied Spots',
                 data: dailyOccupied,
-                backgroundColor: 'rgba(0, 123, 255, 0.2)', // Blue
+                backgroundColor: 'rgba(0, 123, 255, 0.2)',
                 borderColor: '#007bff',
                 pointBackgroundColor: '#007bff',
                 pointBorderColor: '#fff',
@@ -806,7 +770,7 @@ async function initializeCharts() {
             datasets: [{
                 label: 'Occupied Slots',
                 data: weeklyOccupied,
-                backgroundColor: 'rgba(34, 197, 94, 0.7)', // Green
+                backgroundColor: 'rgba(34, 197, 94, 0.7)',
                 borderColor: '#22c55e',
                 borderWidth: 1
             }]
@@ -832,21 +796,20 @@ async function initializeCharts() {
     // --- Monthly Chart (LINE CHART for trend) ---
     const monthlyCtx = document.getElementById('monthlyOccupancyChart').getContext('2d');
     monthlyChart = new Chart(monthlyCtx, {
-        type: 'line', // CHANGED FROM 'doughnut'
+        type: 'line',
         data: {
             labels: monthlyLabels,
             datasets: [{
                 label: 'Avg. Occupied Slots',
                 data: monthlyAvgOccupied,
-                // Using line colors appropriate for trends
-                backgroundColor: 'rgba(255, 159, 64, 0.2)', // Orange/Yellow fill
-                borderColor: '#ff9f40', // Orange line
+                backgroundColor: 'rgba(255, 159, 64, 0.2)', 
+                borderColor: '#ff9f40',
                 pointBackgroundColor: '#ff9f40',
                 pointBorderColor: '#fff',
                 pointHoverBackgroundColor: '#fff',
                 pointHoverBorderColor: '#ff9f40',
                 borderWidth: 2,
-                tension: 0.3, // Smoother line
+                tension: 0.3,
                 fill: true,
             }]
         },
@@ -869,11 +832,6 @@ async function initializeCharts() {
         }
     });
 }
-
-// Call the function when the page loads to display the charts.
-// Note: initializeCharts is now only called when the charts modal is opened.
-// window.addEventListener('load', initializeCharts); 
-
 </script>
 </body>
 </html>
