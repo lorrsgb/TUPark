@@ -1,5 +1,5 @@
 const car = document.getElementById("car");
-const manualLoginForm = document.getElementById("manual-login-form"); // Target the form element
+const manualLoginForm = document.getElementById("manual-login-form"); // Targeting the form
 const emailInput = document.getElementById("manual-email");
 const passInput = document.getElementById("manual-password");
 
@@ -9,7 +9,7 @@ window.addEventListener("load", () => {
 });
 
 // --- MANUAL LOGIN SUBMISSION LOGIC ---
-manualLoginForm.addEventListener("submit", (e) => { // Listen for form submission
+manualLoginForm.addEventListener("submit", (e) => { // Listening to form submit event
   e.preventDefault(); 
 
   const email = emailInput.value;
