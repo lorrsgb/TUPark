@@ -502,6 +502,9 @@ function occupySpot(spotId) {
   const vehicleInput = document.getElementById(`vehicle-input-${spotId}`);
   const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
 
+  const vehicleNo = vehicleInput.value;
+  const vehicleType = typeInput.value;
+
   // Get Local Time
   const time = getManilaTimeString();
 
