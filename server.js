@@ -382,7 +382,7 @@ app.post('/api/hash-password', async (req, res) => {
     res.json({ hashed: hash });
 });
 
-// Export the app for Vercel/Render
+// Export the app for Vercel/Render test
 if (require.main === module) {
     app.listen(PORT, () => {
         console.log(`Server running at http://localhost:${PORT}`);
