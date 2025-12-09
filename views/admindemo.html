@@ -318,111 +318,111 @@ const parkingSpots = {
 // ... (Logic remains the same up to handleSpotClick) ...
 
 function updateDashboardCounts(dbSpots, selectedType) {
-  const buildingMap = {
-    building1: 'count-building1', building2: 'count-building2',
-    building3: 'count-building3', building4: 'count-building4',
-    building5: 'count-building5', building6: 'count-building6',
-    building7: 'count-building7'
-  };
+  const buildingMap = {
+    building1: 'count-building1', building2: 'count-building2',
+    building3: 'count-building3', building4: 'count-building4',
+    building5: 'count-building5', building6: 'count-building6',
+    building7: 'count-building7'
+  };
 
-  for (const [key, elementId] of Object.entries(buildingMap)) {
-    const spotsInBuilding = parkingSpots[key];
-    if (!spotsInBuilding) continue;
-    const total = spotsInBuilding.length;
-    let occupiedCount = 0;
+  for (const [key, elementId] of Object.entries(buildingMap)) {
+    const spotsInBuilding = parkingSpots[key];
+    if (!spotsInBuilding) continue;
+    const total = spotsInBuilding.length;
+    let occupiedCount = 0;
 
-    spotsInBuilding.forEach(spot => {
-      const dbRecord = dbSpots.find(d => d.slot_number === spot.spot_id);
-      if (dbRecord && (dbRecord.status === 'occupied' || dbRecord.status === 'unavailable')) {
-        // Count specific vehicle type if filtered, or all if 'all'
-        const vType = dbRecord.vehicle_type || '';
-        if (selectedType === 'all' || vType === selectedType) {
-            occupiedCount++;
-        }
-      }
-    });
+    spotsInBuilding.forEach(spot => {
+      const dbRecord = dbSpots.find(d => d.slot_number === spot.spot_id);
+      if (dbRecord && (dbRecord.status === 'occupied' || dbRecord.status === 'unavailable')) {
+        // Count specific vehicle type if filtered, or all if 'all'
+        const vType = dbRecord.vehicle_type || '';
+        if (selectedType === 'all' || vType === selectedType) {
+            occupiedCount++;
+        }
+      }
+    });
 
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.innerText = `${occupiedCount}/${total}`;
-        element.className = occupiedCount > 0 ? 'value-red' : 'value-green';
-    }
-  }
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.innerText = `${occupiedCount}/${total}`;
+        element.className = occupiedCount > 0 ? 'value-red' : 'value-green';
+    }
+  }
 }
 
 async function fetchAndRenderSpots(location) {
-  try {
-    const response = await fetch('/api/spots'); 
-    const dbSpots = await response.json(); 
+  try {
+    const response = await fetch('/api/spots'); 
+    const dbSpots = await response.json(); 
 
-    const selectedType = vehicleTypeSelect.value;
-    const showAvailable = availableCheckbox.checked;
-    const showUnavailable = unavailableCheckbox.checked;
+    const selectedType = vehicleTypeSelect.value;
+    const showAvailable = availableCheckbox.checked;
+    const showUnavailable = unavailableCheckbox.checked;
 
-    // Update numbers based on the filter
-    updateDashboardCounts(dbSpots, selectedType);
+    // Update numbers based on the filter
+    updateDashboardCounts(dbSpots, selectedType);
 
-    const currentBuildingSpots = parkingSpots[location]; 
-    if (!currentBuildingSpots) return;
+    const currentBuildingSpots = parkingSpots[location]; 
+    if (!currentBuildingSpots) return;
 
-    spotsContainer.innerHTML = '';
+    spotsContainer.innerHTML = '';
 
-    currentBuildingSpots.forEach(coordSpot => {
-        const dbData = dbSpots.find(db => db.slot_number === coordSpot.spot_id);
-        
-        const status = dbData ? dbData.status : 'available';
-        const vehicle = dbData ? dbData.plate_number : '';
-        const time = dbData ? dbData.start_time : ''; 
-        const vType = dbData ? dbData.vehicle_type : ''; 
+    currentBuildingSpots.forEach(coordSpot => {
+        const dbData = dbSpots.find(db => db.slot_number === coordSpot.spot_id);
+        
+        const status = dbData ? dbData.status : 'available';
+        const vehicle = dbData ? dbData.plate_number : '';
+        const time = dbData ? dbData.start_time : ''; 
+        const vType = dbData ? dbData.vehicle_type : ''; 
 
-        // --- FILTER LOGIC (THE REQUESTED BEHAVIOR) ---
-        let shouldShow = false;
+        // --- FILTER LOGIC (THE REQUESTED BEHAVIOR) ---
+        let shouldShow = false;
 
-        if (selectedType === 'all') {
-            // Case 1: "All" is selected -> DEPENDENT on checkboxes
-            if (status === 'available' && showAvailable) shouldShow = true;
-            if (status === 'occupied' && showUnavailable) shouldShow = true;
-        } else {
-            // Case 2: Specific Type (Car/Motorcycle) -> INDEPENDENT
-            // Show ONLY occupied spots of this type. Ignore empty spots.
-            if (status === 'occupied' && vType === selectedType) {
-                shouldShow = true;
-            }
-        }
+        if (selectedType === 'all') {
+            // Case 1: "All" is selected -> DEPENDENT on checkboxes
+            if (status === 'available' && showAvailable) shouldShow = true;
+            if (status === 'occupied' && showUnavailable) shouldShow = true;
+        } else {
+            // Case 2: Specific Type (Car/Motorcycle) -> INDEPENDENT
+            // Show ONLY occupied spots of this type. Ignore empty spots.
+            if (status === 'occupied' && vType === selectedType) {
+                shouldShow = true;
+            }
+        }
 
-        if (!shouldShow) return; // Skip rendering this spot
-        // ----------------------------------------------------
+        if (!shouldShow) return; // Skip rendering this spot
+        // ----------------------------------------------------
 
-        // Create Box
-        const box = document.createElement('div');
-        box.classList.add('spot', status === 'occupied' ? 'unavailable' : 'available');
-        box.style.top = coordSpot.top;
-        box.style.left = coordSpot.left;
-        
-        const size = buildingSpotSizes[location];
-        if (size) {
-          box.style.width = `${size.width}px`;
-          box.style.height = `${size.height}px`;
-        }
+        // Create Box
+        const box = document.createElement('div');
+        box.classList.add('spot', status === 'occupied' ? 'unavailable' : 'available');
+        box.style.top = coordSpot.top;
+        box.style.left = coordSpot.left;
+        
+        const size = buildingSpotSizes[location];
+        if (size) {
+          box.style.width = `${size.width}px`;
+          box.style.height = `${size.height}px`;
+        }
 
-        box.addEventListener('click', () => {
-             handleSpotClick({ 
-                 spot_id: coordSpot.spot_id, 
-                 status: status, 
-                 vehicle_no: vehicle, 
-                 park_time: time,
-                 vehicle_type: vType 
-             });
-        });
+        box.addEventListener('click', () => {
+             handleSpotClick({ 
+                 spot_id: coordSpot.spot_id, 
+                 status: status, 
+                 vehicle_no: vehicle, 
+                 park_time: time,
+                 vehicle_type: vType 
+             });
+        });
 
-        spotsContainer.appendChild(box);
-    });
-    
-    setTimeout(() => document.querySelectorAll('.spot').forEach(s => s.classList.add('show')), 50);
+        spotsContainer.appendChild(box);
+    });
+    
+    setTimeout(() => document.querySelectorAll('.spot').forEach(s => s.classList.add('show')), 50);
 
-  } catch (err) {
-    console.error("Error loading spots:", err);
-  }
+  } catch (err) {
+    console.error("Error loading spots:", err);
+  }
 }
 
 // ==========================================
@@ -430,159 +430,162 @@ async function fetchAndRenderSpots(location) {
 // ==========================================
 
 function closeModal() {
-  modal.classList.remove('show-modal');
+  modal.classList.remove('show-modal');
 }
 
 function handleSpotClick(spotData) {
-  modalTitle.textContent = `Spot ID: ${spotData.spot_id}`;
+  modalTitle.textContent = `Spot ID: ${spotData.spot_id}`;
 
-  if (spotData.status === 'occupied' || spotData.status === 'unavailable') {
-    
-    // --- START FINAL TIME DISPLAY FIX ---
-    let displayTime = 'N/A';
-    if (spotData.park_time) {
-        // 1. Get the time string (e.g., 2025-12-09 17:04:47)
-        const timeString = spotData.park_time;
-        
-        // 2. Create Date object. We append ' UTC' to force the browser to initially treat 
-        // the 24-hour time string as UTC, preventing unwanted local offsets.
-        const date = new Date(timeString.replace(' ', 'T') + '+08:00'); 
-        
-        // 3. Format the time manually for 12-hour display
-        const hours = date.getHours();
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const seconds = date.getSeconds().toString().padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        
-        const displayHours = hours % 12 || 12; // Convert 24h to 12h
-        
-        displayTime = `${displayHours.toString().padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
-    }
-    // --- END FINAL TIME DISPLAY FIX ---
+  if (spotData.status === 'occupied' || spotData.status === 'unavailable') {
+    
+    // --- START FINAL TIME DISPLAY FIX (Manual Calculation) ---
+    let displayTime = 'N/A';
+    if (spotData.park_time) {
+        // The time string from the server is 'YYYY-MM-DD HH:MI:SS' (Manila Time)
+        const timeString = spotData.park_time;
+        
+        // Use a simple Date constructor, but we must manually extract and format.
+        // NOTE: The 'replace' is a trick to make the string more compliant with ISO format,
+        // reducing unpredictable browser behavior.
+        const date = new Date(timeString.replace(/-/g, "/")); 
+        
+        // Since the server sends the time already set to 'Asia/Manila' via TO_CHAR(),
+        // we use getHours() to get the 24h hours directly and then manually convert to 12h AM/PM.
 
-    modalBody.innerHTML = `
-      <p>THIS SPOT IS OCCUPIED.</p>
-      <p>Vehicle: <strong>${spotData.vehicle_no}</strong></p>
-      <p>Type: <strong>${spotData.vehicle_type || 'N/A'}</strong></p>
-      <p>Time: <strong>${displayTime}</strong></p>
-      <div class="modal-actions">
-          <button class="action-btn-release" onclick="releaseSpot('${spotData.spot_id}')">Release Spot</button>
-      </div>
-    `;
-  } else {
+        const hours = date.getHours();
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        
+        // Convert 24h time to 12h time (13 -> 1, 0 -> 12)
+        const displayHours = hours % 12 || 12; 
+        
+        displayTime = `${displayHours.toString().padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
+    }
+    // --- END FINAL TIME DISPLAY FIX ---
 
-    modalBody.innerHTML = `
-      <p>THIS SPOT IS AVAILABLE.</p>
-      
-      <div class="form-group-modal">
-        <label>Vehicle Number:</label>
-        <input type="text" id="vehicle-input-${spotData.spot_id}" placeholder="Enter plate number" required>
-      </div>
+    modalBody.innerHTML = `
+      <p>THIS SPOT IS OCCUPIED.</p>
+      <p>Vehicle: <strong>${spotData.vehicle_no}</strong></p>
+      <p>Type: <strong>${spotData.vehicle_type || 'N/A'}</strong></p>
+      <p>Time: <strong>${displayTime}</strong></p>
+      <div class="modal-actions">
+          <button class="action-btn-release" onclick="releaseSpot('${spotData.spot_id}')">Release Spot</button>
+      </div>
+    `;
+  } else {
+    modalBody.innerHTML = `
+      <p>THIS SPOT IS AVAILABLE.</p>
+      
+      <div class="form-group-modal">
+        <label>Vehicle Number:</label>
+        <input type="text" id="vehicle-input-${spotData.spot_id}" placeholder="Enter plate number" required>
+      </div>
 
-      <div class="form-group-modal">
-        <label>Vehicle Type:</label>
-        <select id="vehicle-type-input-${spotData.spot_id}" style="width: 100%; padding: 10px; border-radius: 5px; color: black;">
-            <option value="Car">Car</option>
-            <option value="Motorcycle">Motorcycle</option>
-            <option value="Van">Van</option>
-            <option value="Others">Others</option>
-        </select>
-      </div>
+      <div class="form-group-modal">
+        <label>Vehicle Type:</label>
+        <select id="vehicle-type-input-${spotData.spot_id}" style="width: 100%; padding: 10px; border-radius: 5px; color: black;">
+            <option value="Car">Car</option>
+            <option value="Motorcycle">Motorcycle</option>
+            <option value="Van">Van</option>
+            <option value="Others">Others</option>
+        </select>
+      </div>
 
-      <div class="modal-actions">
-          <button class="action-btn-occupy" onclick="occupySpot('${spotData.spot_id}')">Occupy Spot</button>
-      </div>
-    `;
-  }
-  modal.classList.add('show-modal');
+      <div class="modal-actions">
+          <button class="action-btn-occupy" onclick="occupySpot('${spotData.spot_id}')">Occupy Spot</button>
+      </div>
+    `;
+  }
+  modal.classList.add('show-modal');
 }
 
 function getManilaTimeString() {
-  const now = new Date();
+  const now = new Date();
 
-  // Convert to Asia/Manila timezone using Intl API
-  const options = {
-    timeZone: 'Asia/Manila',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  };
+  // Convert to Asia/Manila timezone using Intl API
+  const options = {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  };
 
-  const formatter = new Intl.DateTimeFormat('en-CA', options);
-  const parts = formatter.formatToParts(now);
+  const formatter = new Intl.DateTimeFormat('en-CA', options);
+  const parts = formatter.formatToParts(now);
 
-  const dateParts = {};
-  parts.forEach(({ type, value }) => {
-    dateParts[type] = value;
-  });
+  const dateParts = {};
+  parts.forEach(({ type, value }) => {
+    dateParts[type] = value;
+  });
 
-  // Reconstruct the date/time string in a format PostgreSQL accepts (YYYY-MM-DD HH:MI:SS)
-  return `${dateParts.year}-${dateParts.month}-${dateParts.day} ${dateParts.hour}:${dateParts.minute}:${dateParts.second}`;
+  // Reconstruct the date/time string in a format PostgreSQL accepts (YYYY-MM-DD HH:MI:SS)
+  return `${dateParts.year}-${dateParts.month}-${dateParts.day} ${dateParts.hour}:${dateParts.minute}:${dateParts.second}`;
 }
 
 function occupySpot(spotId) {
-  const vehicleInput = document.getElementById(`vehicle-input-${spotId}`);
-  const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
+  const vehicleInput = document.getElementById(`vehicle-input-${spotId}`);
+  const typeInput = document.getElementById(`vehicle-type-input-${spotId}`); 
 
-  const vehicleNo = vehicleInput.value;
-  const vehicleType = typeInput.value;
+  const vehicleNo = vehicleInput.value;
+  const vehicleType = typeInput.value;
 
-  // Get Local Time in MANILA TIMEZONE (The fix is here)
-  const time = getManilaTimeString();
+  // Get Local Time in MANILA TIMEZONE (The fix is here)
+  const time = getManilaTimeString();
 
-  fetch('/api/update-spot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-          slot_id: spotId, 
-          status: 'occupied', 
-          plate_number: vehicleNo, 
-          park_time: time,
-          vehicle_type: vehicleType 
-      })
-  })
-  .then(response => response.json()) 
-  .then(data => {
-      if (data.success) {
-          closeModal();
-          fetchAndRenderSpots(locationSelect.value); 
-      } else {
-          alert(data.message); 
-      }
-  })
-  .catch(err => {
-      console.error(err);
-      alert("System Error. Please try again.");
-  });
+  fetch('/api/update-spot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+          slot_id: spotId, 
+          status: 'occupied', 
+          plate_number: vehicleNo, 
+          park_time: time,
+          vehicle_type: vehicleType 
+      })
+  })
+  .then(response => response.json()) 
+  .then(data => {
+      if (data.success) {
+          closeModal();
+          fetchAndRenderSpots(locationSelect.value); 
+      } else {
+          alert(data.message); 
+      }
+  })
+  .catch(err => {
+      console.error(err);
+      alert("System Error. Please try again.");
+  });
 }
 
 function releaseSpot(spotId) {
-  if (!confirm(`Release spot ${spotId}?`)) return;
+  if (!confirm(`Release spot ${spotId}?`)) return;
 
-  fetch('/api/update-spot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-          slot_id: spotId, 
-          status: 'available', 
-          plate_number: null, 
-          park_time: null,
-          vehicle_type: null
-      })
-  }).then(() => {
-      closeModal();
-      fetchAndRenderSpots(locationSelect.value);
-  });
+  fetch('/api/update-spot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+          slot_id: spotId, 
+          status: 'available', 
+          plate_number: null, 
+          park_time: null,
+          vehicle_type: null
+      })
+  }).then(() => {
+      closeModal();
+      fetchAndRenderSpots(locationSelect.value);
+  });
 }
 
 window.onclick = (e) => { 
-    if (e.target === modal) closeModal(); 
-    if (e.target === logsModal) closeLogsModal();
-    if (e.target === chartsModal) closeChartsModal();
+    if (e.target === modal) closeModal(); 
+    if (e.target === logsModal) closeLogsModal();
+    if (e.target === chartsModal) closeChartsModal();
 }
 
 // ==========================================
@@ -590,27 +593,27 @@ window.onclick = (e) => {
 // ==========================================
 
 locationSelect.addEventListener('change', (e) => {
-  const newImage = mapImages[e.target.value] || mapImages.none;
-  mapImage.src = newImage;
-  fetchAndRenderSpots(e.target.value);
+  const newImage = mapImages[e.target.value] || mapImages.none;
+  mapImage.src = newImage;
+  fetchAndRenderSpots(e.target.value);
 });
 
 // --- UPDATED: Handle Vehicle Type Change (Locks the Checkbox) ---
 vehicleTypeSelect.addEventListener('change', () => {
-    const type = vehicleTypeSelect.value;
+    const type = vehicleTypeSelect.value;
 
-    if (type !== 'all') {
-        // LOCK LOGIC: If specific type selected (Car, Van, etc.)
-        availableCheckbox.checked = false; 
-        availableCheckbox.disabled = true; 
-        
-        unavailableCheckbox.checked = true; 
-    } else {
-        // UNLOCK LOGIC: If 'All' is selected
-        availableCheckbox.disabled = false; 
-    }
+    if (type !== 'all') {
+        // LOCK LOGIC: If specific type selected (Car, Van, etc.)
+        availableCheckbox.checked = false; 
+        availableCheckbox.disabled = true; 
+        
+        unavailableCheckbox.checked = true; 
+    } else {
+        // UNLOCK LOGIC: If 'All' is selected
+        availableCheckbox.disabled = false; 
+    }
 
-    fetchAndRenderSpots(locationSelect.value);
+    fetchAndRenderSpots(locationSelect.value);
 });
 
 availableCheckbox.addEventListener('change', () => fetchAndRenderSpots(locationSelect.value));
@@ -618,15 +621,15 @@ unavailableCheckbox.addEventListener('change', () => fetchAndRenderSpots(locatio
 
 // --- UPDATED: Reset Button (Unlocks everything) ---
 resetButton.addEventListener('click', () => {
-  locationSelect.value = 'none';
-  vehicleTypeSelect.value = 'all'; 
-  
-  // Reset Checkboxes
-  availableCheckbox.disabled = false; 
-  availableCheckbox.checked = false;
-  unavailableCheckbox.checked = false;
-  
-  fetchAndRenderSpots('none');
+  locationSelect.value = 'none';
+  vehicleTypeSelect.value = 'all'; 
+  
+  // Reset Checkboxes
+  availableCheckbox.disabled = false; 
+  availableCheckbox.checked = false;
+  unavailableCheckbox.checked = false;
+  
+  fetchAndRenderSpots('none');
 });
 
 // Initial Load
@@ -638,46 +641,46 @@ const logsModal = document.getElementById('logs-modal');
 const logsList = document.getElementById('logs-list');
 
 function openLogsModal() {
-    logsModal.classList.add('show-modal');
-    fetchLogs();
+    logsModal.classList.add('show-modal');
+    fetchLogs();
 }
 
 function closeLogsModal() {
-    logsModal.classList.remove('show-modal');
+    logsModal.classList.remove('show-modal');
 }
 
 async function fetchLogs() {
-    try {
-        const response = await fetch('/api/logs');
-        const logs = await response.json();
-        logsList.innerHTML = '';
-        logs.forEach(log => {
-            const item = document.createElement('div');
-            item.style.padding = '10px';
-            item.style.borderBottom = '1px solid #444';
-            item.innerHTML = `
-                <div style="display: flex; justify-content: space-between;">
-                    <strong style="color: #22c55e">${log.action}</strong>
-                    <span style="color: #888; font-size: 0.8em;">${new Date(log.timestamp).toLocaleString()}
-                </span>
-                </div>
-                <div style="color: #fff;">${log.username}: ${log.details}</div>
-            `;
-            logsList.appendChild(item);
-        });
-    } catch (err) { console.error(err); }
+    try {
+        const response = await fetch('/api/logs');
+        const logs = await response.json();
+        logsList.innerHTML = '';
+        logs.forEach(log => {
+            const item = document.createElement('div');
+            item.style.padding = '10px';
+            item.style.borderBottom = '1px solid #444';
+            item.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <strong style="color: #22c55e">${log.action}</strong>
+                    <span style="color: #888; font-size: 0.8em;">${new Date(log.timestamp).toLocaleString()}
+                </span>
+                </div>
+                <div style="color: #fff;">${log.username}: ${log.details}</div>
+            `;
+            logsList.appendChild(item);
+        });
+    } catch (err) { console.error(err); }
 }
 
 // --- NEW CHARTS MODAL LOGIC ---
 const chartsModal = document.getElementById('charts-modal');
 
 function openChartsModal() {
-    chartsModal.classList.add('show-modal');
-    initializeCharts();
+    chartsModal.classList.add('show-modal');
+    initializeCharts();
 }
 
 function closeChartsModal() {
-    chartsModal.classList.remove('show-modal');
+    chartsModal.classList.remove('show-modal');
 }
 
 // ==========================================
@@ -689,7 +692,7 @@ let idleTime = 0;
 const TIMEOUT_LIMIT = 15 * 60 * 1000; 
 
 function resetTimer() {
-    idleTime = 0;
+    idleTime = 0;
 }
 
 document.onmousemove = resetTimer;
@@ -698,14 +701,14 @@ document.onclick = resetTimer;
 document.onscroll = resetTimer;
 
 setInterval(() => {
-    if (idleTime >= TIMEOUT_LIMIT) {
-        fetch('/api/session-timeout', { method: 'POST' })
-        .then(() => {
-            alert("Session Expired due to inactivity. You have been logged out.");
-            window.location.href = '/login-page';
-        });
-    }
-    idleTime += 1000; 
+    if (idleTime >= TIMEOUT_LIMIT) {
+        fetch('/api/session-timeout', { method: 'POST' })
+        .then(() => {
+            alert("Session Expired due to inactivity. You have been logged out.");
+            window.location.href = '/login-page';
+        });
+    }
+    idleTime += 1000; 
 }, 1000);
 
 
@@ -718,143 +721,143 @@ let dailyChart, weeklyChart, monthlyChart;
 const TOTAL_SPOTS = 85; 
 
 async function fetchChartData(endpoint) {
-    try {
-        const response = await fetch(endpoint);
-        if (!response.ok) throw new Error('Network response was not ok');
-        return await response.json();
-    } catch (error) {
-        console.error(`Error fetching data from ${endpoint}:`, error);
-        return [];
-    }
+    try {
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error('Network response was not ok');
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching data from ${endpoint}:`, error);
+        return [];
+    }
 }
 
 async function initializeCharts() {
-    const dailyDataRaw = await fetchChartData('/api/charts/daily');
-    const weeklyDataRaw = await fetchChartData('/api/charts/weekly');
-    const monthlyDataRaw = await fetchChartData('/api/charts/monthly');
+    const dailyDataRaw = await fetchChartData('/api/charts/daily');
+    const weeklyDataRaw = await fetchChartData('/api/charts/weekly');
+    const monthlyDataRaw = await fetchChartData('/api/charts/monthly');
 
-    if (dailyChart) dailyChart.destroy();
-    if (weeklyChart) weeklyChart.destroy();
-    if (monthlyChart) monthlyChart.destroy();
+    if (dailyChart) dailyChart.destroy();
+    if (weeklyChart) weeklyChart.destroy();
+    if (monthlyChart) monthlyChart.destroy();
 
-    const dailyLabels = dailyDataRaw.map(d => d.hour_label + ':00');
-    const dailyOccupied = dailyDataRaw.map(d => parseInt(d.occupied_count, 10));
+    const dailyLabels = dailyDataRaw.map(d => d.hour_label + ':00');
+    const dailyOccupied = dailyDataRaw.map(d => parseInt(d.occupied_count, 10));
 
-    const weeklyLabels = weeklyDataRaw.map(d => d.day_label);
-    const weeklyOccupied = weeklyDataRaw.map(d => parseInt(d.occupied_slots_count, 10));
+    const weeklyLabels = weeklyDataRaw.map(d => d.day_label);
+    const weeklyOccupied = weeklyDataRaw.map(d => parseInt(d.occupied_slots_count, 10));
 
-    const monthlyLabels = monthlyDataRaw.map(d => d.month_label);
-    const monthlyAvgOccupied = monthlyDataRaw.map(d => parseInt(d.average_occupied_slots, 10));
+    const monthlyLabels = monthlyDataRaw.map(d => d.month_label);
+    const monthlyAvgOccupied = monthlyDataRaw.map(d => parseInt(d.average_occupied_slots, 10));
 
-    // --- Daily Chart (Line) ---
-    const dailyCtx = document.getElementById('dailyOccupancyChart').getContext('2d');
-    dailyChart = new Chart(dailyCtx, {
-        type: 'line',
-        data: {
-            labels: dailyLabels,
-            datasets: [{
-                label: 'Occupied Spots',
-                data: dailyOccupied,
-                backgroundColor: 'rgba(0, 123, 255, 0.2)',
-                borderColor: '#007bff',
-                pointBackgroundColor: '#007bff',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: '#007bff',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Number of Spots' },
-                    max: TOTAL_SPOTS + 5,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                },
-                x: { grid: { display: false } }
-            },
-            plugins: {
-                legend: { display: false },
-                title: { display: false }
-            }
-        }
-    });
+    // --- Daily Chart (Line) ---
+    const dailyCtx = document.getElementById('dailyOccupancyChart').getContext('2d');
+    dailyChart = new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+            labels: dailyLabels,
+            datasets: [{
+                label: 'Occupied Spots',
+                data: dailyOccupied,
+                backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                borderColor: '#007bff',
+                pointBackgroundColor: '#007bff',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#007bff',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Number of Spots' },
+                    max: TOTAL_SPOTS + 5,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: false }
+            }
+        }
+    });
 
-    // --- Weekly Chart (Bar) ---
-    const weeklyCtx = document.getElementById('weeklyOccupancyChart').getContext('2d');
-    weeklyChart = new Chart(weeklyCtx, {
-        type: 'bar',
-        data: {
-            labels: weeklyLabels,
-            datasets: [{
-                label: 'Occupied Slots',
-                data: weeklyOccupied,
-                backgroundColor: 'rgba(34, 197, 94, 0.7)',
-                borderColor: '#22c55e',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Number of Spots' },
-                    max: TOTAL_SPOTS + 5,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                },
-                x: { grid: { display: false } }
-            },
-            plugins: {
-                legend: { display: false },
-                title: { display: false }
-            }
-        }
-    });
+    // --- Weekly Chart (Bar) ---
+    const weeklyCtx = document.getElementById('weeklyOccupancyChart').getContext('2d');
+    weeklyChart = new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+            labels: weeklyLabels,
+            datasets: [{
+                label: 'Occupied Slots',
+                data: weeklyOccupied,
+                backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                borderColor: '#22c55e',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Number of Spots' },
+                    max: TOTAL_SPOTS + 5,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: false }
+            }
+        }
+    });
 
-    // --- Monthly Chart (LINE CHART for trend) ---
-    const monthlyCtx = document.getElementById('monthlyOccupancyChart').getContext('2d');
-    monthlyChart = new Chart(monthlyCtx, {
-        type: 'line',
-        data: {
-            labels: monthlyLabels,
-            datasets: [{
-                label: 'Avg. Occupied Slots',
-                data: monthlyAvgOccupied,
-                backgroundColor: 'rgba(255, 159, 64, 0.2)', 
-                borderColor: '#ff9f40',
-                pointBackgroundColor: '#ff9f40',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: '#ff9f40',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Avg. Occupied Slots' },
-                    max: TOTAL_SPOTS + 5,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                },
-                x: { grid: { display: false } }
-            },
-            plugins: {
-                legend: { display: false },
-                title: { display: false }
-            }
-        }
-    });
+    // --- Monthly Chart (LINE CHART for trend) ---
+    const monthlyCtx = document.getElementById('monthlyOccupancyChart').getContext('2d');
+    monthlyChart = new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: monthlyLabels,
+            datasets: [{
+                label: 'Avg. Occupied Slots',
+                data: monthlyAvgOccupied,
+                backgroundColor: 'rgba(255, 159, 64, 0.2)', 
+                borderColor: '#ff9f40',
+                pointBackgroundColor: '#ff9f40',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#ff9f40',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Avg. Occupied Slots' },
+                    max: TOTAL_SPOTS + 5,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: false }
+            }
+        }
+    });
 }
 </script>
 </body>
