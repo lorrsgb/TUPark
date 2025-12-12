@@ -441,7 +441,7 @@ function handleSpotClick(spotData) {
       <p>THIS SPOT IS OCCUPIED.</p>
       <p>Vehicle: <strong>${spotData.vehicle_no}</strong></p>
       <p>Type: <strong>${spotData.vehicle_type || 'N/A'}</strong></p>
-      <p>Time: <strong>${spotData.park_time ? new Date(spotData.park_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Manila' }) : 'N/A'}</strong></p>
+      <p>Time: <strong>${spotData.park_time || 'N/A'}</strong></p>
       <div class="modal-actions">
           <button class="action-btn-release" onclick="releaseSpot('${spotData.spot_id}')">Release Spot</button>
       </div>
