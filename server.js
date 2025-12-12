@@ -301,8 +301,7 @@ app.get('/api/spots', async (req, res) => {
                 status, 
                 plate_number,
                 vehicle_type,
-                -- Convert and format the time for PH
-                TO_CHAR(start_time AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD HH24:MI:SS') AS start_time 
+                start_time
             FROM slots
         `);
         res.json(result.rows);
@@ -311,6 +310,11 @@ app.get('/api/spots', async (req, res) => {
         res.status(500).json({ message: "Server error fetching spots." });
     }
 });
+
+/* -- Convert and format the time for PH
+    -- TO_CHAR(start_time AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD HH24:MI:SS') AS start_time 
+*/
+
 
 // --- GET ACTIVITY LOGS ---
 app.get('/api/logs', checkAuth, async (req, res) => { 
