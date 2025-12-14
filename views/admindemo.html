@@ -70,10 +70,12 @@
           <div class="checkbox-group">
             <input type="checkbox" id="available-spot" />
             <label for="available-spot">Available Spot</label>
+            <div style="width: 15px; height: 15px; background-color: #4CAF50; border: 1px solid #ccc; margin-left: auto;"></div>
           </div>
           <div class="checkbox-group">
             <input type="checkbox" id="unavailable-spot" />
             <label for="unavailable-spot">Unavailable Spot</label>
+            <div style="width: 15px; height: 15px; background-color: #f44336; border: 1px solid #ccc; margin-left: auto;"></div>
           </div>
         </div>
 
@@ -404,6 +406,18 @@ async function fetchAndRenderSpots(location) {
           box.style.width = `${size.width}px`;
           box.style.height = `${size.height}px`;
         }
+
+        box.textContent = coord.spot_id;
+        box.style.display = 'flex';
+        box.style.alignItems = 'center';
+        box.style.justifyContent = 'center';
+        box.style.textAlign = 'center';
+        box.style.fontSize = location === 'building1' ? '6px' : '11px';
+        box.style.fontWeight = 'bold';
+        box.style.color = 'white';
+        box.style.textShadow = '1px 1px 2px rgba(0,0,0,0.9)';
+        box.style.border = '1px solid rgba(255,255,255,0.3)';
+        box.title = `Slot ID: ${coord.spot_id} - Status: ${realStatus.toUpperCase()}`;
 
         box.addEventListener('click', () => {
              handleSpotClick({ 
