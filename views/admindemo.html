@@ -419,6 +419,9 @@ async function fetchAndRenderSpots(location) {
         box.style.border = '1px solid rgba(255,255,255,0.3)';
         box.title = `Slot ID: ${coord.spot_id} - Status: ${realStatus.toUpperCase()}`;
 
+        const displayStatus = status === 'occupied' ? 'UNAVAILABLE' : 'AVAILABLE';
+        box.title = `Slot ID: ${coordSpot.spot_id} - Status: ${displayStatus}`;
+
         box.addEventListener('click', () => {
              handleSpotClick({ 
                  spot_id: coordSpot.spot_id, 
