@@ -122,11 +122,6 @@ app.get('/admin/reports', checkAuth, (req, res) => res.sendFile(path.join(__dirn
 // ==========================================
 // 6. API ROUTES (POSTGRESQL REWRITE)
 // ==========================================
-// ... (Lines 1 to 142 remain the same) ...
-
-// ==========================================
-// 6. API ROUTES (POSTGRESQL REWRITE)
-// ==========================================
 
 // --- LOGOUT ROUTE ---
 app.get('/logout', (req, res) => {
@@ -218,7 +213,6 @@ app.get('/api/charts/monthly', checkAuth, async (req, res) => {
 
 // --- LOGIN LOGIC ---
 app.post('/login', async (req, res) => { 
-// ... (Login logic remains the same) ...
     const { adminId, password } = req.body;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const now = Date.now();
@@ -264,7 +258,6 @@ app.post('/login', async (req, res) => {
 
 // --- GET PARKING SPOTS ---
 app.get('/api/spots', async (req, res) => { 
-// ... (Get spots logic remains the same) ...
     try {
         const result = await pool.query('SELECT * FROM slots');
         res.json(result.rows);
@@ -275,7 +268,6 @@ app.get('/api/spots', async (req, res) => {
 
 // --- GET ACTIVITY LOGS ---
 app.get('/api/logs', checkAuth, async (req, res) => { 
-// ... (Get logs logic remains the same) ...
     try {
         const result = await pool.query('SELECT * FROM activity_logs ORDER BY timestamp DESC');
         res.json(result.rows);
@@ -286,7 +278,6 @@ app.get('/api/logs', checkAuth, async (req, res) => {
 
 // --- UPDATE SPOT ---
 app.post('/api/update-spot', async (req, res) => { 
-// ... (Update spot logic remains the same) ...
     const { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
     const currentUser = req.session.username || 'Unknown Admin'; 
 
@@ -323,7 +314,6 @@ app.post('/api/update-spot', async (req, res) => {
 
 // --- USER REPORT SUBMISSION ---
 app.post('/api/submit-report', async (req, res) => { 
-// ... (User report submission logic remains the same) ...
     const { category, description, name, plate, slot_id } = req.body; 
     
     // Check for all required fields including slot_id
@@ -354,7 +344,6 @@ app.post('/api/submit-report', async (req, res) => {
 
 // --- ADMIN REPORT ACTIONS ---
 app.get('/api/admin/reports', checkAuth, async (req, res) => { 
-// ... (Admin report actions logic remains the same) ...
     try {
         // SELECT * will now include the new slot_number column
         const result = await pool.query('SELECT * FROM problem_reports ORDER BY report_date DESC');
