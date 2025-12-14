@@ -11,7 +11,8 @@ const rateLimit = require('express-rate-limit');
 // Define the Limiter
 const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, 
-    max: 1000, 
+    // FIX: Reduce max to a sensible limit to prevent the DoS attack
+    max: 100, // Reduced from 1000 requests per minute
     message: "Too many requests from this IP, please try again later."
 });
 
@@ -285,7 +286,7 @@ app.get('/api/logs', checkAuth, async (req, res) => {
 });
 
 // --- UPDATE SPOT ---
-app.post('/api/update-spot', async (req, res) => { 
+app.post('/api/update-spot', checkAuth, async (req, res) => {
 // ... (Update spot logic remains the same) ...
     const { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
     const currentUser = req.session.username || 'Unknown Admin'; 
