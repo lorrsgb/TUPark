@@ -6,6 +6,110 @@
   <title>Parking Availability - Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/homestyle.css" />
+  <style>
+    /* ⚠️ WARNING: These styles are critical for the layout and visual fixes. */
+    
+    /* 1. Left-Align and Define Card Size (Smaller Width/Height) */
+    .Front-content {
+      text-align: left;
+      padding: 25px 35px; /* Increased horizontal padding, reduced vertical padding */
+      width: 90%; 
+      max-width: 400px; /* Wider card width */
+      margin: 40px auto 40px 5%; /* Left-aligned */
+      border-radius: 15px; 
+      box-sizing: border-box;
+      background: rgba(0, 0, 0, 0.75); 
+      color: white; 
+    }
+
+    /* 2. Make ADMIN LOG IN Text Bigger */
+    .Front-content h2 {
+        font-size: 28px; /* Bigger font size */
+        margin-bottom: 5px; 
+    }
+    .Front-content p {
+        font-size: 14px;
+        line-height: 1.4;
+        margin-bottom: 15px; 
+    }
+    
+    /* 3. Input and Button Styles (Smaller Size, Rounded) */
+    .manual-login-section form {
+      display: block; 
+      width: 100%; 
+    }
+    .manual-login-section label {
+      display: block;
+      margin-top: 10px; 
+      margin-bottom: 3px; 
+      font-weight: 500;
+      color: #ccc;
+      font-size: 14px;
+    }
+    .manual-login-section input {
+      width: 100%;
+      padding: 10px 18px; /* Reduced input padding (smaller height/width) */
+      border: none;
+      border-radius: 25px; /* Rounded */
+      background: rgba(255, 255, 255, 0.15); 
+      color: white;
+      font-size: 15px; 
+      box-sizing: border-box;
+    }
+    
+    /* 4. LOG IN Button (Smaller, Rounded, White) */
+    #manual-login-btn {
+        margin-top: 20px !important; 
+        width: 100% !important;
+        padding: 12px; /* Smaller button padding */
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 25px; 
+        background-color: white;
+        color: black;
+        border: none;
+        transition: background-color 0.3s;
+    }
+    
+    /* 5. Separator with OR text */
+    .separator-text {
+        margin: 15px 0;
+        color: #aaa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        text-transform: uppercase;
+        width: 100%;
+    }
+    .separator-text hr {
+        flex-grow: 1;
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.3);
+        margin: 0 10px;
+    }
+    
+    /* 6. Google Button (Matching the new smaller size) */
+    .google-login-btn {
+        width: 100%;
+        padding: 12px; /* Matching new manual button padding */
+        border-radius: 25px; /* Matching new manual button roundness */
+        font-size: 15px; /* Matching new manual button font size */
+    }
+
+    /* Media query to ensure it doesn't leave the screen on mobile */
+    @media (max-width: 768px) {
+        .Front-content {
+            margin: 20px auto; /* Center on small screens */
+            max-width: 90%;
+        }
+        /* Restore left-align for inner elements on mobile */
+        .manual-login-section form {
+            text-align: left;
+            display: block; 
+        }
+    }
+  </style>
 </head>
 
 <body class="home-page">
@@ -22,21 +126,38 @@
   
   <div class="Front-content">
     <h2>ADMIN LOG IN</h2>
-    <P>Parking Availability monitoring map for the Technological University of the Philippines - Manila</P>
-    <form>
-      <label for="admin-id">Admin ID:</label>
-      <input type="text" id="admin-id" name="admin-id" />
-
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" />
-    </form>
+    <p>Parking Availability monitoring map for the Technological University of the Philippines - Manila</p>
     
-    <button class="login-btn" id="login-btn">LOG IN</button> 
+    <div class="manual-login-section">
+        
+        <form id="manual-login-form">
+            <label for="manual-email">Enter email</label>
+            <input type="email" id="manual-email" placeholder="" required>
+
+            <label for="manual-password">Enter password</label>
+            <input type="password" id="manual-password" placeholder="" required>
+
+            <button type="submit" id="manual-login-btn" class="login-btn">LOG IN</button>
+        </form>
+    </div>
+
+    <div class="separator-text">
+        <hr>
+        <span>OR</span>
+        <hr>
+    </div>
+    
+    <div class="oauth-container">
+        <a href="/auth/google" class="google-login-btn">
+            <img src="/google_icon.jpg" alt="Google Icon" class="google-icon">
+            LOG IN with Google
+        </a>
+    </div>
   </div>
 
   <img src="/car-top.png" alt="Car" class="car" id="car">
 
-  <script src="/script.js"></script>
+  <script src="/script.js"></script> 
 
 </body>
 </html>

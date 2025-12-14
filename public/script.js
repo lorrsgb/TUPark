@@ -1,7 +1,7 @@
-const btn = document.getElementById("login-btn");
 const car = document.getElementById("car");
-const adminInput = document.getElementById("admin-id");
-const passInput = document.getElementById("password");
+const manualLoginForm = document.getElementById("manual-login-form"); // Targeting the form
+const emailInput = document.getElementById("manual-email");
+const passInput = document.getElementById("manual-password");
 
 // --- NEW CHART VARIABLES & ELEMENTS ---
 // These variables will hold the Chart.js instances for dynamic updates.
@@ -16,49 +16,70 @@ window.addEventListener("load", () => {
   document.body.classList.add("fade-in");
 });
 
+<<<<<<< HEAD
 // ==========================================
 // LOGIN LOGIC
 // ==========================================
 btn.addEventListener("click", (e) => {
   e.preventDefault(); // Stop the form from refreshing the page
+=======
+// --- MANUAL LOGIN SUBMISSION LOGIC ---
+manualLoginForm.addEventListener("submit", (e) => { // Listening to form submit event
+  e.preventDefault(); 
+>>>>>>> 8e0abc72d6f5cc6c860d92d265575d7a56300f0e
 
-  // 1. Get values from the input fields
-  const adminId = adminInput.value;
+  const email = emailInput.value;
   const password = passInput.value;
 
+<<<<<<< HEAD
   // 2. Send data to the server
   fetch('/login', {
+=======
+  fetch('/manual-login', { 
+>>>>>>> 8e0abc72d6f5cc6c860d92d265575d7a56300f0e
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ adminId: adminId, password: password })
+      body: JSON.stringify({ email: email, password: password }) 
   })
-  .then(response => response.json())
+  .then(response => {
+       // Handle 401/500 errors gracefully
+      if (!response.ok) {
+          return response.json().then(errorData => {
+              throw new Error(errorData.message || 'Login failed.');
+          });
+      }
+      return response.json();
+  })
   .then(data => {
       if (data.success) {
-          // 3. IF SUCCESS: Play animation and redirect
-          console.log("Login Approved!");
+          console.log("Manual Login Approved!");
           car.classList.add("move");
 
           setTimeout(() => {
             document.body.classList.add("fade-out");
             setTimeout(() => {
-              // Redirect to the SERVER ROUTE '/admin'
-              window.location.href = "/admin"; 
+              // Redirect to the server-provided redirect URL (e.g., /admin)
+              window.location.href = data.redirect || "/admin"; 
             }, 800); 
           }, 2500);
 
+<<<<<<< HEAD
       } else {
           // 4. IF FAIL: Show the specific Security Message
           alert(data.message);
       }
+=======
+      } 
+>>>>>>> 8e0abc72d6f5cc6c860d92d265575d7a56300f0e
   })
   .catch(error => {
-      console.error('Error:', error);
-      alert("System Error. Please try again.");
+      console.error('Error:', error.message);
+      alert(`Login Error: ${error.message}`);
   });
 });
+<<<<<<< HEAD
 
 
 // ==========================================
@@ -202,6 +223,16 @@ if (statisticsLink) {
 // LOAD USAGE STATISTICS (Existing code preserved for compatibility)
 // ==========================================
 let usageChart; // Define the chart variable globally for loadUsageStatistics to use
+=======
+// --- END MANUAL LOGIN SUBMISSION LOGIC ---
+
+
+// =====================================
+// LOAD USAGE STATISTICS (Retained)
+// =====================================
+let usageChart; 
+
+>>>>>>> 8e0abc72d6f5cc6c860d92d265575d7a56300f0e
 async function loadUsageStatistics(range) {
     try {
         // NOTE: This assumes an API endpoint /api/stats?range=... is available
