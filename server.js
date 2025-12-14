@@ -354,7 +354,7 @@ app.post('/api/update-spot', checkAuth, async (req, res) => {
             if (checkResult.rows.length > 0) {
                 return res.json({ 
                     success: false, 
-                    message: Error: Vehicle ${plate_number} is already parked at ${checkResult.rows[0].slot_number}! 
+                    message: `Error: Vehicle ${plate_number} is already parked at ${checkResult.rows[0].slot_number}!` 
                 });
             }
         } 
@@ -371,8 +371,8 @@ app.post('/api/update-spot', checkAuth, async (req, res) => {
         // === LOG ACTIVITY ===
         const actionType = status === 'occupied' ? 'OCCUPY_SPOT' : 'RELEASE_SPOT';
         const details = status === 'occupied' 
-            ? Parked ${plate_number} (${vehicle_type}) at ${slot_id}
-            : Released spot ${slot_id};
+            ? `Parked ${plate_number} (${vehicle_type}) at ${slot_id}`
+            : `Released spot ${slot_id}`;
             
         await logActivity(currentUser, actionType, details, req);
 
@@ -395,7 +395,7 @@ app.post('/api/submit-report', async (req, res) => {
         const checkResult = await pool.query(checkMatchSql, [plate, slot_id, 'occupied']); 
 
         if (checkResult.rows.length === 0) {
-            return res.json({ success: false, message: Report Failed: Vehicle ${plate} at slot ${slot_id} is not currently recorded as occupied in our system. });
+            return res.json({ success: false, message: `Report Failed: Vehicle ${plate} at slot ${slot_id} is not currently recorded as occupied in our system.` });
         }
 
         const insertSql = 'INSERT INTO problem_reports (category, description, reporter_name, plate_number, slot_number) VALUES ($1, $2, $3, $4, $5)';
@@ -423,7 +423,7 @@ app.delete('/api/admin/reports/:id', checkAuth, async (req, res) => {
     try {
         const logUsername = req.user && req.user.username ? req.user.username : req.session.username || 'Unknown Admin';
         await pool.query('DELETE FROM problem_reports WHERE id = $1', [reportId]);
-        await logActivity(logUsername, 'DELETE_REPORT', Deleted report ID: ${reportId}, req);
+        await logActivity(logUsername, 'DELETE_REPORT', `Deleted report ID: ${reportId}`, req);
         res.json({ success: true });
     } catch (err) {
         res.json({ success: false, message: "Database Error" });
@@ -439,7 +439,7 @@ app.post('/api/hash-password', async (req, res) => {
 // Export the app for Vercel/Render test
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log(Server running at http://localhost:${PORT});
+        console.log(`Server running at http://localhost:${PORT}`);
     });
 }
 
