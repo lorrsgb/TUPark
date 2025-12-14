@@ -11,8 +11,7 @@ const rateLimit = require('express-rate-limit');
 // Define the Limiter
 const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, 
-    // FIX: Reduce max to a sensible limit to prevent the DoS attack
-    max: 100, // Reduced from 1000 requests per minute
+    max: 1000, 
     message: "Too many requests from this IP, please try again later."
 });
 
