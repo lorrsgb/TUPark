@@ -409,10 +409,6 @@ nav ul li a:hover {
   transform: translate(-50%, -50%) scale(0.8);
   opacity: 0;
   transition: opacity 0.5s ease-in-out, transform 0.3s ease-in-out;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 }
 
 .spot.show {
