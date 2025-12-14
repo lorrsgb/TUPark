@@ -7,6 +7,8 @@ const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 3000; 
 const rateLimit = require('express-rate-limit'); 
+const passport = require ('passport');
+const GoogleStrategy = require ('passport-google-oauth20').Strategy
 
 // Define the Limiter
 const limiter = rateLimit({
