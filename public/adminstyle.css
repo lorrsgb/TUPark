@@ -437,6 +437,15 @@ nav ul li a:hover {
   }
 }
 
+.charts-modal-content {
+    margin: 3% auto; 
+    max-width: 90%; 
+    width: 1400px;
+    height: 98vh; /* ADJUSTED: Increased from 94vh to 98vh */
+    display: flex;
+    flex-direction: column;
+}
+
 .chart-grid {
     flex: 1; /* Allow the grid to take up space */
     display: grid;
