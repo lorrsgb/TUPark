@@ -464,7 +464,7 @@ nav ul li a:hover {
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    min-height: 750px; /* ADJUSTED: Increased from 400px to 450px */
+    min-height: 650px; /* ADJUSTED: Increased from 400px to 450px */
 }
 
 .chart-card h3 {
@@ -484,7 +484,7 @@ nav ul li a:hover {
 /* Ensure canvas takes up available space */
 .chart-card canvas {
     max-width: 100%;
-    height: 550px; /* ADJUSTED: Increased from 300px to 350px */
+    height: 500px; /* ADJUSTED: Increased from 300px to 350px */
 }
 
 /* Ensure the closing brace for the media query is correctly placed 
