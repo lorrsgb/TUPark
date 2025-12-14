@@ -374,7 +374,7 @@ function renderSpots(location) {
           box.style.color = 'white';
           box.style.textShadow = '1px 1px 2px rgba(0,0,0,0.9)';
           box.style.border = '1px solid rgba(255,255,255,0.3)';
-          box.title = `Slot ID: ${coord.spot_id} - Status: ${coord.status.toUpperCase()}`;
+          box.title = `Slot ID: ${coord.spot_id} - Status: ${realStatus.toUpperCase()}`;
 
           box.addEventListener('click', () => {
              const latest = currentSpotsData.find(s => s.slot_number === coord.spot_id);
