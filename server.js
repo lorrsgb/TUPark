@@ -286,7 +286,7 @@ app.get('/api/logs', checkAuth, async (req, res) => {
 });
 
 // --- UPDATE SPOT ---
-app.post('/api/update-spot', checkAuth, async (req, res) => {
+app.post('/api/update-spot', async (req, res) => { 
 // ... (Update spot logic remains the same) ...
     const { slot_id, status, plate_number, park_time, vehicle_type } = req.body;
     const currentUser = req.session.username || 'Unknown Admin'; 
