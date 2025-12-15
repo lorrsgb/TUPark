@@ -249,7 +249,7 @@ app.get('/api/charts/daily', checkAuth, async (req, res) => {
         SELECT 
             EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Asia/Manila') AS hour_label,
             -- Use REGEXP_REPLACE to extract the plate number from the details column
-            COUNT(DISTINCT SUBSTRING(details FROM 'Parked (.*?) (') ) AS occupied_count
+            COUNT(DISTINCT SUBSTRING(details FROM 'Parked ([^ ]+)') ) AS occupied_count
         FROM 
             activity_logs
         WHERE 
@@ -273,7 +273,7 @@ app.get('/api/charts/weekly', checkAuth, async (req, res) => {
         SELECT 
             TO_CHAR(timestamp AT TIME ZONE 'Asia/Manila', 'Dy') AS day_label,
             -- Use REGEXP_REPLACE to extract the plate number from the details column
-            COUNT(DISTINCT SUBSTRING(details FROM 'Parked (.*?) (') ) AS occupied_slots_count
+            COUNT(DISTINCT SUBSTRING(details FROM 'Parked ([^ ]+)') ) AS occupied_slots_count
         FROM 
             activity_logs
         WHERE 
@@ -301,7 +301,7 @@ app.get('/api/charts/monthly', checkAuth, async (req, res) => {
             SELECT
                 DATE_TRUNC('day', timestamp AT TIME ZONE 'Asia/Manila') AS day,
                 -- Use REGEXP_REPLACE to extract the plate number from the details column
-                COUNT(DISTINCT SUBSTRING(details FROM 'Parked (.*?) (') ) AS occupied_count
+                COUNT(DISTINCT SUBSTRING(details FROM 'Parked ([^ ]+)') ) AS occupied_count
             FROM 
                 activity_logs
             WHERE 

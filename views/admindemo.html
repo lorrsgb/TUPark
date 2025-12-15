@@ -666,8 +666,13 @@ const chartsModal = document.getElementById('charts-modal');
 
 function openChartsModal() {
     chartsModal.classList.add('show-modal');
-    initializeCharts();
+
+    // wait until modal is visible before rendering charts
+    setTimeout(() => {
+        initializeCharts();
+    }, 200);
 }
+
 
 function closeChartsModal() {
     chartsModal.classList.remove('show-modal');
