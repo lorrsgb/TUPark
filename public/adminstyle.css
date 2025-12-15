@@ -455,6 +455,7 @@ nav ul li a:hover {
     grid-template-columns: 1fr; 
     gap: 20px;
     padding-top: 15px;
+    padding-right: 20px;
     overflow-y: auto; 
 }
 
