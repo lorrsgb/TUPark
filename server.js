@@ -225,6 +225,97 @@ app.post('/manual-login', async (req, res) => {
     }
 });
 
+// ==========================================
+// 8. CHART DATA ROUTES (MISSING IMPLEMENTATION)
+// ==========================================
+
+// Helper function to execute chart queries
+async function executeChartQuery(sql) {
+    try {
+        const result = await pool.query(sql);
+        return result.rows;
+    } catch (err) {
+        console.error("Chart Data Error:", err);
+        // Return an empty array on failure so the client-side doesn't crash
+        return [];
+    }
+}
+
+// --- DAILY CHART (Hourly Occupancy - Last 24 Hours) ---
+// Note: Uses 'activity_logs' to count distinct occupied plates by hour.
+app.get('/api/charts/daily', checkAuth, async (req, res) => {
+    const dailySql = `
+        SELECT 
+            EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Asia/Manila') AS hour_label,
+            COUNT(DISTINCT plate_number) AS occupied_count
+        FROM 
+            activity_logs
+        WHERE 
+            action = 'OCCUPY_SPOT'
+            AND timestamp > NOW() - INTERVAL '24 hours'
+        GROUP BY 
+            hour_label
+        ORDER BY 
+            hour_label;
+    `;
+    const data = await executeChartQuery(dailySql);
+    res.json(data);
+});
+
+
+// --- WEEKLY CHART (Unique Occupancy Events - Last 7 Days) ---
+// Note: Uses 'activity_logs' to count distinct occupied plates by day.
+app.get('/api/charts/weekly', checkAuth, async (req, res) => {
+    const weeklySql = `
+        SELECT 
+            TO_CHAR(timestamp AT TIME ZONE 'Asia/Manila', 'Dy') AS day_label,
+            COUNT(DISTINCT plate_number) AS occupied_slots_count
+        FROM 
+            activity_logs
+        WHERE 
+            action = 'OCCUPY_SPOT'
+            AND timestamp > NOW() - INTERVAL '7 days'
+        GROUP BY 
+            day_label
+        ORDER BY 
+            MIN(timestamp);
+    `;
+    const data = await executeChartQuery(weeklySql);
+    res.json(data);
+});
+
+
+// --- MONTHLY CHART (Average Occupancy - Last 12 Months) ---
+// Note: Calculates the average daily occupied count per month.
+app.get('/api/charts/monthly', checkAuth, async (req, res) => {
+    const monthlySql = `
+        SELECT 
+            TO_CHAR(DATE_TRUNC('month', timestamp AT TIME ZONE 'Asia/Manila'), 'Mon YYYY') AS month_label,
+            AVG(sub.occupied_count) AS average_occupied_slots
+        FROM (
+            SELECT
+                DATE_TRUNC('day', timestamp AT TIME ZONE 'Asia/Manila') AS day,
+                COUNT(DISTINCT plate_number) AS occupied_count
+            FROM 
+                activity_logs
+            WHERE 
+                action = 'OCCUPY_SPOT'
+                AND timestamp > NOW() - INTERVAL '12 months'
+            GROUP BY 
+                1
+        ) sub
+        GROUP BY 
+            month_label
+        ORDER BY 
+            MIN(sub.day);
+    `;
+    const data = await executeChartQuery(monthlySql);
+    res.json(data);
+});
+
+// ==========================================
+// 9. LISTEN APP (Ensure PORT is listening)
+// ==========================================
 
 // --- GOOGLE OAUTH ROUTES (EXISTING) ---
 app.get('/auth/google',
