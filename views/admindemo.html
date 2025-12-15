@@ -149,7 +149,7 @@
   <div id="charts-modal" class="modal">
     <div class="modal-content charts-modal-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3>Occupancy Trends</h3>
+            <h3>Slot Trends</h3>
             <span class="close-button" onclick="closeChartsModal()">&times;</span>
         </div>
         <div class="chart-grid">
@@ -770,7 +770,7 @@ async function initializeCharts() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: 'Number of Spots' },
+                    title: { display: true, text: 'Number of Slots' },
                     max: TOTAL_SPOTS + 5,
                     grid: { color: 'rgba(255, 255, 255, 0.1)' }
                 },
@@ -802,7 +802,7 @@ async function initializeCharts() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: 'Number of Spots' },
+                    title: { display: true, text: 'Number of Slots' },
                     max: TOTAL_SPOTS + 5,
                     grid: { color: 'rgba(255, 255, 255, 0.1)' }
                 },
