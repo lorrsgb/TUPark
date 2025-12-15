@@ -226,7 +226,7 @@ app.post('/manual-login', async (req, res) => {
 });
 
 // ==========================================
-// 8. CHART DATA ROUTES (MISSING IMPLEMENTATION)
+// 8. CHART DATA ROUTES (IMPLEMENTATION)
 // ==========================================
 
 // Helper function to execute chart queries
@@ -242,7 +242,7 @@ async function executeChartQuery(sql) {
 }
 
 // --- DAILY CHART (Hourly Occupancy - Last 24 Hours) ---
-// Note: Uses 'activity_logs' to count distinct occupied plates by hour.
+// Provides 'hour_label' (0-23) and 'occupied_count'
 app.get('/api/charts/daily', checkAuth, async (req, res) => {
     const dailySql = `
         SELECT 
@@ -264,7 +264,7 @@ app.get('/api/charts/daily', checkAuth, async (req, res) => {
 
 
 // --- WEEKLY CHART (Unique Occupancy Events - Last 7 Days) ---
-// Note: Uses 'activity_logs' to count distinct occupied plates by day.
+// Provides 'day_label' (e.g., 'Mon', 'Tue') and 'occupied_slots_count'
 app.get('/api/charts/weekly', checkAuth, async (req, res) => {
     const weeklySql = `
         SELECT 
@@ -286,11 +286,12 @@ app.get('/api/charts/weekly', checkAuth, async (req, res) => {
 
 
 // --- MONTHLY CHART (Average Occupancy - Last 12 Months) ---
-// Note: Calculates the average daily occupied count per month.
+// Provides 'month_label' (e.g., 'Jan 2025') and 'average_occupied_slots'
 app.get('/api/charts/monthly', checkAuth, async (req, res) => {
     const monthlySql = `
         SELECT 
             TO_CHAR(DATE_TRUNC('month', timestamp AT TIME ZONE 'Asia/Manila'), 'Mon YYYY') AS month_label,
+            -- Calculate the average number of occupied slots per month
             AVG(sub.occupied_count) AS average_occupied_slots
         FROM (
             SELECT
@@ -314,9 +315,8 @@ app.get('/api/charts/monthly', checkAuth, async (req, res) => {
 });
 
 // ==========================================
-// 9. LISTEN APP (Ensure PORT is listening)
+// 9. END OF CHART ROUTES
 // ==========================================
-
 // --- GOOGLE OAUTH ROUTES (EXISTING) ---
 app.get('/auth/google',
     passport.authenticate('google', { 
