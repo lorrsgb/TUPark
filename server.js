@@ -243,15 +243,18 @@ async function executeChartQuery(sql) {
 
 // --- DAILY CHART (Hourly Occupancy - Last 24 Hours) ---
 // Provides 'hour_label' (0-23) and 'occupied_count'
+// --- DAILY CHART (Hourly Occupancy - Last 24 Hours) ---
 app.get('/api/charts/daily', checkAuth, async (req, res) => {
     const dailySql = `
         SELECT 
             EXTRACT(HOUR FROM timestamp AT TIME ZONE 'Asia/Manila') AS hour_label,
-            COUNT(DISTINCT plate_number) AS occupied_count
+            -- Use REGEXP_REPLACE to extract the plate number from the details column
+            COUNT(DISTINCT SUBSTRING(details FROM 'Parked (.*?) (') ) AS occupied_count
         FROM 
             activity_logs
         WHERE 
             action = 'OCCUPY_SPOT'
+            AND details LIKE 'Parked %' -- Ensures we only process 'Parked' messages
             AND timestamp > NOW() - INTERVAL '24 hours'
         GROUP BY 
             hour_label
@@ -264,16 +267,18 @@ app.get('/api/charts/daily', checkAuth, async (req, res) => {
 
 
 // --- WEEKLY CHART (Unique Occupancy Events - Last 7 Days) ---
-// Provides 'day_label' (e.g., 'Mon', 'Tue') and 'occupied_slots_count'
+// --- WEEKLY CHART (Unique Occupancy Events - Last 7 Days) ---
 app.get('/api/charts/weekly', checkAuth, async (req, res) => {
     const weeklySql = `
         SELECT 
             TO_CHAR(timestamp AT TIME ZONE 'Asia/Manila', 'Dy') AS day_label,
-            COUNT(DISTINCT plate_number) AS occupied_slots_count
+            -- Use REGEXP_REPLACE to extract the plate number from the details column
+            COUNT(DISTINCT SUBSTRING(details FROM 'Parked (.*?) (') ) AS occupied_slots_count
         FROM 
             activity_logs
         WHERE 
             action = 'OCCUPY_SPOT'
+            AND details LIKE 'Parked %'
             AND timestamp > NOW() - INTERVAL '7 days'
         GROUP BY 
             day_label
@@ -286,21 +291,22 @@ app.get('/api/charts/weekly', checkAuth, async (req, res) => {
 
 
 // --- MONTHLY CHART (Average Occupancy - Last 12 Months) ---
-// Provides 'month_label' (e.g., 'Jan 2025') and 'average_occupied_slots'
+// --- MONTHLY CHART (Average Occupancy - Last 12 Months) ---
 app.get('/api/charts/monthly', checkAuth, async (req, res) => {
     const monthlySql = `
         SELECT 
             TO_CHAR(DATE_TRUNC('month', timestamp AT TIME ZONE 'Asia/Manila'), 'Mon YYYY') AS month_label,
-            -- Calculate the average number of occupied slots per month
             AVG(sub.occupied_count) AS average_occupied_slots
         FROM (
             SELECT
                 DATE_TRUNC('day', timestamp AT TIME ZONE 'Asia/Manila') AS day,
-                COUNT(DISTINCT plate_number) AS occupied_count
+                -- Use REGEXP_REPLACE to extract the plate number from the details column
+                COUNT(DISTINCT SUBSTRING(details FROM 'Parked (.*?) (') ) AS occupied_count
             FROM 
                 activity_logs
             WHERE 
                 action = 'OCCUPY_SPOT'
+                AND details LIKE 'Parked %'
                 AND timestamp > NOW() - INTERVAL '12 months'
             GROUP BY 
                 1
